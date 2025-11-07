@@ -15,6 +15,8 @@
         }
 
         :root {
+            --wisag-green: #6db133;
+            --wisag-dark: #3e3e40;
             --primary-color: #6db133;
             --primary-dark: #5a9429;
             --success-color: #6db133;
@@ -22,19 +24,25 @@
             --danger-color: #ef4444;
             --dark: #3e3e40;
             --dark-light: #5a5a5c;
-            --light: #f3f4f6;
+            --light: #f8f9fa;
             --white: #ffffff;
-            --text-primary: #3e3e40;
-            --text-secondary: #6b7280;
-            --border-color: #e5e7eb;
+            --text-primary: #2c2c2e;
+            --text-secondary: #8e8e93;
+            --border-color: #e5e5ea;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #6db133 0%, #5a9429 100%);
+            background: #f8f9fa;
             min-height: 100vh;
             color: var(--text-primary);
-            padding-bottom: 70px;
+            padding-bottom: 0;
+            line-height: 1.6;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
@@ -46,38 +54,51 @@
         /* Header */
         .header {
             background: var(--white);
-            padding: 16px 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 24px 28px;
+            box-shadow: var(--shadow-sm);
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .header-content {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 16px;
         }
 
         .logo-icon {
-            font-size: 28px;
+            width: 48px;
+            height: 48px;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .logo-text h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary-color);
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--wisag-dark);
+            letter-spacing: -0.5px;
         }
 
         .logo-text p {
-            font-size: 11px;
+            font-size: 13px;
             color: var(--text-secondary);
+            font-weight: 400;
+            margin-top: 2px;
         }
 
         .status-indicator {
@@ -99,38 +120,42 @@
             background: var(--white);
             border-bottom: 1px solid var(--border-color);
             position: sticky;
-            top: 64px;
+            top: 88px;
             z-index: 99;
+            box-shadow: var(--shadow-sm);
         }
 
         .nav-tab {
             flex: 1;
-            padding: 14px 20px;
+            padding: 16px 20px;
             text-align: center;
             background: none;
             border: none;
-            border-bottom: 3px solid transparent;
+            border-bottom: 2px solid transparent;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--text-secondary);
-            transition: all 0.3s;
+            transition: all 0.2s ease;
+            letter-spacing: -0.1px;
         }
 
         .nav-tab.active {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
+            color: var(--wisag-green);
+            border-bottom-color: var(--wisag-green);
+            font-weight: 600;
         }
 
         .nav-tab:hover {
-            background: var(--light);
+            background: #f8f9fa;
+            color: var(--wisag-green);
         }
 
         /* Tab Content */
         .tab-content {
             display: none;
-            padding: 20px;
-            animation: fadeIn 0.3s;
+            padding: 28px 20px 80px;
+            animation: fadeIn 0.4s ease;
         }
 
         .tab-content.active {
@@ -138,24 +163,31 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         /* Cards */
         .card {
             background: var(--white);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 32px 28px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
         }
 
         .card-header {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 16px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
             color: var(--text-primary);
+            letter-spacing: -0.3px;
         }
 
         /* Camera Section */
@@ -239,44 +271,64 @@
         /* Buttons */
         .btn {
             width: 100%;
-            padding: 16px 24px;
+            padding: 14px 24px;
             border: none;
             border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            letter-spacing: -0.1px;
         }
 
         .btn-primary {
-            background: var(--primary-color);
+            background: var(--wisag-green);
             color: var(--white);
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-primary:hover {
-            background: #1d4ed8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
         }
 
         .btn-success {
-            background: var(--success-color);
+            background: var(--wisag-green);
             color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-success:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
 
         .btn-secondary {
             background: var(--light);
             color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #dee2e6;
         }
 
         .btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
             transform: none !important;
+            box-shadow: none !important;
         }
 
         .btn-group {
@@ -286,7 +338,132 @@
             margin-bottom: 16px;
         }
 
-        /* Loading Spinner */
+        /* Snake Loading Animation */
+        .snake-loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 24px;
+        }
+
+        .snake-path {
+            position: relative;
+            width: 200px;
+            height: 100px;
+            margin: 0 auto;
+        }
+
+        .snake-head {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            animation: snakeMove 3s ease-in-out infinite;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .snake-head img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .snake-body {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .snake-segment {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--wisag-green);
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+
+        .snake-segment:nth-child(1) {
+            animation: snakeMove 3s ease-in-out infinite 0.1s;
+            animation-fill-mode: both;
+        }
+
+        .snake-segment:nth-child(2) {
+            animation: snakeMove 3s ease-in-out infinite 0.2s;
+            animation-fill-mode: both;
+            opacity: 0.7;
+        }
+
+        .snake-segment:nth-child(3) {
+            animation: snakeMove 3s ease-in-out infinite 0.3s;
+            animation-fill-mode: both;
+            opacity: 0.6;
+        }
+
+        .snake-segment:nth-child(4) {
+            animation: snakeMove 3s ease-in-out infinite 0.4s;
+            animation-fill-mode: both;
+            opacity: 0.5;
+        }
+
+        .snake-segment:nth-child(5) {
+            animation: snakeMove 3s ease-in-out infinite 0.5s;
+            animation-fill-mode: both;
+            opacity: 0.4;
+        }
+
+        @keyframes snakeMove {
+            0% {
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            25% {
+                left: 25%;
+                top: 20%;
+                transform: translateY(-50%) rotate(20deg);
+            }
+            50% {
+                left: 50%;
+                top: 50%;
+                transform: translateY(-50%) rotate(0deg);
+            }
+            75% {
+                left: 75%;
+                top: 80%;
+                transform: translateY(-50%) rotate(-20deg);
+            }
+            100% {
+                left: 100%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: center;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Legacy spinner (fallback) */
         .spinner {
             border: 3px solid rgba(255, 255, 255, 0.3);
             border-top: 3px solid var(--white);
@@ -642,7 +819,190 @@
             background: var(--success-color);
         }
 
-        /* Responsive */
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            /* Compact header */
+            .header {
+                padding: 12px 16px;
+            }
+
+            .logo-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .logo-text h1 {
+                font-size: 18px;
+            }
+
+            .logo-text p {
+                font-size: 11px;
+            }
+
+            .logo {
+                gap: 12px;
+            }
+
+            /* Compact navigation */
+            .nav-tabs {
+                top: 62px;
+            }
+
+            .nav-tab {
+                padding: 12px 8px;
+                font-size: 12px;
+            }
+
+            /* Compact tab content */
+            .tab-content {
+                padding: 16px 12px 60px;
+            }
+
+            /* Compact cards */
+            .card {
+                padding: 20px 16px;
+                margin-bottom: 16px;
+                border-radius: 12px;
+            }
+
+            .card-header {
+                font-size: 17px;
+                margin-bottom: 16px;
+            }
+
+            /* Smaller camera container */
+            .camera-container {
+                aspect-ratio: 16/9;
+                margin-bottom: 12px;
+            }
+
+            /* Compact buttons */
+            .btn {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+
+            .btn-group {
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            /* Compact task selector */
+            .task-selector {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .task-option {
+                padding: 14px;
+            }
+
+            .task-icon {
+                font-size: 28px;
+                margin-bottom: 6px;
+            }
+
+            .task-name {
+                font-size: 12px;
+            }
+
+            /* Compact stats grid */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+                margin-bottom: 6px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+            }
+
+            /* Compact history items */
+            .history-item {
+                padding: 14px;
+                margin-bottom: 10px;
+            }
+
+            .history-score {
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .history-task {
+                font-size: 14px;
+                margin-bottom: 4px;
+            }
+
+            .history-time {
+                font-size: 11px;
+            }
+
+            .history-summary {
+                font-size: 12px;
+            }
+
+            /* Compact result cards */
+            .result-card {
+                padding: 18px;
+            }
+
+            .result-header {
+                margin-bottom: 16px;
+            }
+
+            .score-badge {
+                width: 70px;
+                height: 70px;
+                font-size: 26px;
+            }
+
+            .quality-badge {
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+
+            /* Compact batch results */
+            .summary-stat {
+                padding: 14px;
+            }
+
+            .summary-value {
+                font-size: 28px;
+            }
+
+            .summary-label {
+                font-size: 11px;
+            }
+
+            /* Compact upload mode selector */
+            #uploadModeSelect {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            /* Reduce snake loader size */
+            .snake-loader-container {
+                padding: 40px 20px;
+            }
+
+            .loading-text {
+                font-size: 14px;
+            }
+
+            .loading-subtext {
+                font-size: 12px;
+            }
+        }
+
         @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -660,7 +1020,9 @@
         <div class="header">
             <div class="header-content">
                 <div class="logo">
-                    <div class="logo-icon">✨</div>
+                    <div class="logo-icon">
+                        <img src="assets/wisag-logo.png" alt="WISAG" onerror="this.style.display='none'; this.parentElement.innerHTML='🟢';">
+                    </div>
                     <div class="logo-text">
                         <h1>AI CleanCheck</h1>
                         <p>WISAG Quality Assurance</p>
@@ -679,31 +1041,72 @@
 
         <!-- Tab: Inspect -->
         <div id="tab-inspect" class="tab-content active">
+            <!-- Upload Mode Selector -->
             <div class="card">
-                <div class="card-header">Capture Cleaning Area</div>
+                <div class="card-header">📤 Upload Mode</div>
+                <select id="uploadModeSelect" onchange="switchUploadMode()" style="width: 100%; padding: 12px; font-size: 15px; border: 1px solid var(--border-color); border-radius: 8px; background: white; color: var(--text-primary); cursor: pointer;">
+                    <option value="single">📸 Single Image - Analyze one image at a time</option>
+                    <option value="batch">📦 Batch Upload - Analyze up to 10 images at once</option>
+                </select>
+            </div>
 
-                <div class="camera-container">
-                    <video id="video" autoplay playsinline></video>
-                    <canvas id="canvas"></canvas>
-                    <div id="cameraPlaceholder" class="camera-placeholder">
-                        <div class="camera-placeholder-icon">📷</div>
-                        <div>Tap below to start camera or upload image</div>
+            <!-- Single Upload Section -->
+            <div id="singleUploadSection">
+                <div class="card">
+                    <div class="card-header">Capture Cleaning Area</div>
+
+                    <div class="camera-container">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas"></canvas>
+                        <div id="cameraPlaceholder" class="camera-placeholder">
+                            <div class="camera-placeholder-icon">📷</div>
+                            <div>Tap "Take/Upload Photo" to capture or select an image</div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="startCameraBtn" onclick="startCamera()">
+                            📷 Live Camera
+                        </button>
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                            📸 Take/Upload Photo
+                        </button>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" onchange="handleFileUpload(event)">
+
+                    <button class="btn btn-success" id="captureBtn" onclick="captureAndAnalyze()" disabled>
+                        🔍 Capture & Analyze
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Batch Upload Section -->
+            <div id="batchUploadSection" style="display: none;">
+                <div class="card">
+                    <div class="card-header">📦 Batch Upload (Up to 10 Images)</div>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+                        Upload multiple images at once for bulk quality inspection. Perfect for checking an entire area quickly!
+                    </p>
+
+                    <button class="btn btn-primary" onclick="document.getElementById('batchFileInput').click()">
+                        📤 Select Multiple Images (Max 10)
+                    </button>
+                    <input type="file" id="batchFileInput" accept="image/*" multiple onchange="handleBatchUpload(event)" style="display: none;">
+
+                    <div id="batchPreview" style="display: none; margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <strong id="batchCount">0 images selected</strong>
+                            <button class="btn btn-secondary" onclick="clearBatchSelection()" style="width: auto; padding: 8px 16px; font-size: 13px;">
+                                Clear All
+                            </button>
+                        </div>
+                        <div id="batchImageList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-bottom: 20px;"></div>
+                        <button class="btn btn-success" id="batchAnalyzeBtn" onclick="analyzeBatch()">
+                            🔍 Analyze All Images
+                        </button>
                     </div>
                 </div>
-
-                <div class="btn-group">
-                    <button class="btn btn-primary" id="startCameraBtn" onclick="startCamera()">
-                        📷 Start Camera
-                    </button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
-                        📁 Upload Image
-                    </button>
-                </div>
-                <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleFileUpload(event)">
-
-                <button class="btn btn-success" id="captureBtn" onclick="captureAndAnalyze()" disabled>
-                    🔍 Capture & Analyze
-                </button>
             </div>
 
             <div class="card">
@@ -770,6 +1173,8 @@
         let currentStream = null;
         let selectedTask = 'desk-surface';
         let capturedImage = null;
+        let batchImages = [];
+        let batchResults = [];
 
         // Task Icons
         const TASK_ICONS = {
@@ -800,6 +1205,21 @@
             } catch (error) {
                 document.getElementById('statusIndicator').style.backgroundColor = 'var(--danger-color)';
                 showToast('⚠️ Cannot connect to API. Please start the backend server.', 'error');
+            }
+        }
+
+        // Switch between Single and Batch Upload Modes
+        function switchUploadMode() {
+            const mode = document.getElementById('uploadModeSelect').value;
+            const singleSection = document.getElementById('singleUploadSection');
+            const batchSection = document.getElementById('batchUploadSection');
+
+            if (mode === 'single') {
+                singleSection.style.display = 'block';
+                batchSection.style.display = 'none';
+            } else if (mode === 'batch') {
+                singleSection.style.display = 'none';
+                batchSection.style.display = 'block';
             }
         }
 
@@ -857,7 +1277,24 @@
                 document.getElementById('startCameraBtn').onclick = stopCamera;
             } catch (error) {
                 console.error('Error accessing camera:', error);
-                showToast('❌ Cannot access camera. Please check permissions.', 'error');
+
+                // Better error messages for different scenarios
+                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                const isHTTPS = window.location.protocol === 'https:';
+
+                let message = '❌ Live Camera unavailable. ';
+
+                if (isSafari && !isHTTPS) {
+                    message += 'Safari requires HTTPS for camera. Use "Take/Upload Photo" button instead! 📸';
+                } else if (error.name === 'NotAllowedError') {
+                    message += 'Please allow camera permissions. Or use "Take/Upload Photo" button. 📸';
+                } else if (error.name === 'NotFoundError') {
+                    message += 'No camera found. Use "Take/Upload Photo" button. 📸';
+                } else {
+                    message += 'Use "Take/Upload Photo" button instead. 📸';
+                }
+
+                showToast(message, 'error');
             }
         }
 
@@ -870,7 +1307,7 @@
                 video.style.display = 'none';
                 document.getElementById('cameraPlaceholder').style.display = 'flex';
                 document.getElementById('captureBtn').disabled = true;
-                document.getElementById('startCameraBtn').textContent = '📷 Start Camera';
+                document.getElementById('startCameraBtn').textContent = '📷 Live Camera';
                 document.getElementById('startCameraBtn').onclick = startCamera;
             }
         }
@@ -887,6 +1324,298 @@
                 analyzeImage(capturedImage);
             };
             reader.readAsDataURL(file);
+        }
+
+        // Handle Batch Upload
+        function handleBatchUpload(event) {
+            const files = Array.from(event.target.files);
+
+            if (files.length === 0) return;
+
+            if (files.length > 10) {
+                showToast('⚠️ Maximum 10 images allowed. Only first 10 will be processed.', 'error');
+                files = files.slice(0, 10);
+            }
+
+            batchImages = [];
+            const batchImageList = document.getElementById('batchImageList');
+            const batchPreview = document.getElementById('batchPreview');
+            const batchCount = document.getElementById('batchCount');
+
+            batchImageList.innerHTML = '';
+
+            let processedCount = 0;
+
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    batchImages.push({
+                        data: e.target.result,
+                        name: file.name,
+                        index: index
+                    });
+
+                    // Create thumbnail preview
+                    const thumbnail = document.createElement('div');
+                    thumbnail.style.cssText = `
+                        position: relative;
+                        aspect-ratio: 1;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        border: 2px solid var(--border-color);
+                    `;
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+
+                    const label = document.createElement('div');
+                    label.textContent = `#${index + 1}`;
+                    label.style.cssText = `
+                        position: absolute;
+                        top: 4px;
+                        left: 4px;
+                        background: var(--wisag-green);
+                        color: white;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        font-size: 11px;
+                        font-weight: 600;
+                    `;
+
+                    thumbnail.appendChild(img);
+                    thumbnail.appendChild(label);
+                    batchImageList.appendChild(thumbnail);
+
+                    processedCount++;
+                    batchCount.textContent = `${processedCount} image${processedCount > 1 ? 's' : ''} selected`;
+
+                    if (processedCount === files.length) {
+                        batchPreview.style.display = 'block';
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function clearBatchSelection() {
+            batchImages = [];
+            document.getElementById('batchPreview').style.display = 'none';
+            document.getElementById('batchFileInput').value = '';
+            document.getElementById('batchImageList').innerHTML = '';
+        }
+
+        async function analyzeBatch() {
+            if (batchImages.length === 0) {
+                showToast('❌ No images selected', 'error');
+                return;
+            }
+
+            const resultContainer = document.getElementById('resultContainer');
+            batchResults = [];
+
+            // Show loading state
+            resultContainer.innerHTML = `
+                <div class="card">
+                    <div class="snake-loader-container">
+                        <div class="snake-path">
+                            <div class="snake-head">
+                                <img src="assets/wisag-logo.png" alt="WISAG Logo">
+                            </div>
+                            <div class="snake-body">
+                                <div class="snake-segment"></div>
+                                <div class="snake-segment"></div>
+                                <div class="snake-segment"></div>
+                                <div class="snake-segment"></div>
+                                <div class="snake-segment"></div>
+                            </div>
+                        </div>
+                        <div class="loading-text">Processing ${batchImages.length} images...</div>
+                        <div class="loading-subtext">This may take a moment</div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                // Process images sequentially
+                for (let i = 0; i < batchImages.length; i++) {
+                    const img = batchImages[i];
+
+                    // Update loading message
+                    const loadingText = document.querySelector('.loading-text');
+                    if (loadingText) {
+                        loadingText.textContent = `Analyzing image ${i + 1} of ${batchImages.length}...`;
+                    }
+
+                    const response = await fetch(`${API_URL}/analyze`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            imageData: img.data,
+                            taskType: selectedTask,
+                            metadata: {
+                                timestamp: new Date().toISOString(),
+                                batchIndex: i,
+                                batchTotal: batchImages.length,
+                                imageName: img.name
+                            }
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Analysis failed for image ${i + 1}`);
+                    }
+
+                    const result = await response.json();
+                    batchResults.push({
+                        ...result,
+                        imageName: img.name,
+                        imageData: img.data
+                    });
+                }
+
+                // Display batch results
+                displayBatchResults(batchResults);
+                await loadHistory();
+                await loadStats();
+                showToast(`✅ Successfully analyzed ${batchResults.length} images!`, 'success');
+
+            } catch (error) {
+                console.error('Error in batch analysis:', error);
+                resultContainer.innerHTML = `
+                    <div class="card" style="background: #fee2e2; border-left: 4px solid var(--danger-color);">
+                        <div class="card-header" style="color: var(--danger-color);">❌ Batch Analysis Failed</div>
+                        <p style="color: var(--text-secondary); margin-bottom: 0;">${error.message}</p>
+                        <p style="color: var(--text-secondary); margin-top: 12px; font-size: 13px;">
+                            Successfully analyzed: ${batchResults.length} of ${batchImages.length} images
+                        </p>
+                    </div>
+                `;
+                showToast('❌ Batch analysis failed. See details above.', 'error');
+            }
+        }
+
+        function displayBatchResults(results) {
+            const resultContainer = document.getElementById('resultContainer');
+
+            // Calculate aggregate statistics
+            const avgScore = Math.round(results.reduce((sum, r) => sum + r.assessment.overallScore, 0) / results.length);
+            const qualityCounts = {
+                GOOD: results.filter(r => r.assessment.quality === 'GOOD').length,
+                MEDIUM: results.filter(r => r.assessment.quality === 'MEDIUM').length,
+                POOR: results.filter(r => r.assessment.quality === 'POOR').length
+            };
+
+            let html = `
+                <div class="card">
+                    <div class="card-header">📊 Batch Analysis Summary</div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+                        <div style="text-align: center; padding: 20px; background: var(--light); border-radius: 12px;">
+                            <div style="font-size: 36px; font-weight: 700; color: var(--wisag-green);">${results.length}</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Images Analyzed</div>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: var(--light); border-radius: 12px;">
+                            <div style="font-size: 36px; font-weight: 700; color: var(--wisag-green);">${avgScore}</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Average Score</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                        <div style="flex: 1; text-align: center; padding: 12px; background: #d1fae5; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: 700; color: #065f46;">${qualityCounts.GOOD}</div>
+                            <div style="font-size: 12px; color: #065f46;">Good</div>
+                        </div>
+                        <div style="flex: 1; text-align: center; padding: 12px; background: #fef3c7; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: 700; color: #92400e;">${qualityCounts.MEDIUM}</div>
+                            <div style="font-size: 12px; color: #92400e;">Medium</div>
+                        </div>
+                        <div style="flex: 1; text-align: center; padding: 12px; background: #fee2e2; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: 700; color: #991b1b;">${qualityCounts.POOR}</div>
+                            <div style="font-size: 12px; color: #991b1b;">Poor</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" onclick="toggleDetailedResults()" style="margin-bottom: 0;">
+                        <span id="toggleDetailsText">📋 Show Detailed Results</span>
+                    </button>
+                </div>
+
+                <div id="detailedResults" style="display: none;">
+            `;
+
+            results.forEach((result, index) => {
+                const qualityClass = result.assessment.quality.toLowerCase();
+                html += `
+                    <div class="result-card" style="margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                            <div>
+                                <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
+                                    #${index + 1}: ${result.taskName}
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">${result.imageName || 'Image ' + (index + 1)}</div>
+                            </div>
+                            <div class="score-circle ${qualityClass}" style="width: 60px; height: 60px; font-size: 20px;">
+                                <div>${result.assessment.overallScore}</div>
+                                <div class="score-label">SCORE</div>
+                            </div>
+                        </div>
+
+                        <div class="quality-badge quality-${qualityClass}" style="display: inline-block; margin-bottom: 16px;">
+                            ${result.assessment.quality}
+                        </div>
+
+                        <div class="result-summary">
+                            <strong>Summary:</strong> ${result.assessment.summary}
+                        </div>
+
+                        <details style="margin-top: 16px;">
+                            <summary style="cursor: pointer; font-weight: 600; margin-bottom: 12px;">View Detailed Findings</summary>
+                            <div class="findings-list">
+                                ${result.assessment.findings.map(finding => `
+                                    <div class="finding-item">
+                                        <div class="finding-status">${finding.status === 'PASS' ? '✅' : '❌'}</div>
+                                        <div class="finding-content">
+                                            <div class="finding-aspect">${finding.aspect}</div>
+                                            <div class="finding-description">${finding.description}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            ${result.assessment.recommendations && result.assessment.recommendations.length > 0 ? `
+                                <div class="recommendations" style="margin-top: 16px;">
+                                    <h4>💡 Recommendations</h4>
+                                    <ul>
+                                        ${result.assessment.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </details>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            resultContainer.innerHTML = html;
+
+            // Scroll to results
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function toggleDetailedResults() {
+            const detailedResults = document.getElementById('detailedResults');
+            const toggleText = document.getElementById('toggleDetailsText');
+
+            if (detailedResults.style.display === 'none') {
+                detailedResults.style.display = 'block';
+                toggleText.textContent = '📋 Hide Detailed Results';
+            } else {
+                detailedResults.style.display = 'none';
+                toggleText.textContent = '📋 Show Detailed Results';
+            }
         }
 
         // Capture and Analyze
@@ -909,9 +1638,21 @@
             const resultContainer = document.getElementById('resultContainer');
             resultContainer.innerHTML = `
                 <div class="card">
-                    <div style="text-align: center; padding: 40px 20px;">
-                        <div class="spinner" style="margin: 0 auto 20px;"></div>
-                        <div style="color: var(--text-secondary);">Analyzing image with AI...</div>
+                    <div class="snake-loader-container">
+                        <div class="snake-path">
+                            <div class="snake-head">
+                                <img src="assets/wisag-logo.png" alt="WISAG Logo">
+                            </div>
+                            <div class="snake-body">
+                                <div class="snake-segment"></div>
+                                <div class="snake-segment"></div>
+                                <div class="snake-segment"></div>
+                                <div class="snake-segment"></div>
+                                <div class="snake-segment"></div>
+                            </div>
+                        </div>
+                        <div class="loading-text">AI is analyzing your image...</div>
+                        <div class="loading-subtext">Powered by WISAG Quality Standards</div>
                     </div>
                 </div>
             `;
@@ -1029,8 +1770,7 @@
 
                 historyList.innerHTML = history.map(item => {
                     const qualityClass = item.assessment.quality.toLowerCase();
-                    const date = new Date(item.timestamp);
-                    const timeAgo = getTimeAgo(date);
+                    const formattedDate = formatDateTime(item.timestamp);
 
                     return `
                         <div class="history-item">
@@ -1040,7 +1780,7 @@
                             </div>
                             <div class="history-content">
                                 <div class="history-task">${TASK_ICONS[item.taskType] || '📋'} ${item.taskName}</div>
-                                <div class="history-time">${timeAgo}</div>
+                                <div class="history-time">📅 ${formattedDate}</div>
                                 <div class="history-summary">${item.assessment.summary}</div>
                             </div>
                         </div>
@@ -1138,14 +1878,16 @@
             }, 3000);
         }
 
-        // Get Time Ago
-        function getTimeAgo(date) {
-            const seconds = Math.floor((new Date() - date) / 1000);
+        // Format Date Time (MM/DD/YYYY-HH:MM)
+        function formatDateTime(date) {
+            const d = new Date(date);
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const year = d.getFullYear();
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
 
-            if (seconds < 60) return 'Just now';
-            if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
-            if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-            return `${Math.floor(seconds / 86400)} days ago`;
+            return `${month}/${day}/${year}-${hours}:${minutes}`;
         }
 
         // Cleanup on page unload
