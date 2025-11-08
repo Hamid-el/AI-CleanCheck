@@ -20,7 +20,7 @@
             --primary-color: #6db133;
             --primary-dark: #5a9429;
             --success-color: #6db133;
-            --warning-color: #f59e0b;
+            --warning-color: #facc15; /* updated to distinct yellow */
             --danger-color: #ef4444;
             --dark: #3e3e40;
             --dark-light: #5a5a5c;
@@ -39,7 +39,7 @@
             background: #f8f9fa;
             min-height: 100vh;
             color: var(--text-primary);
-            padding-bottom: 0;
+            padding-bottom: 70px; /* reserve space for bottom nav */
             line-height: 1.6;
             font-size: 16px;
             -webkit-font-smoothing: antialiased;
@@ -148,11 +148,13 @@
         .nav-tabs {
             display: flex;
             background: var(--white);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 88px;
-            z-index: 99;
-            box-shadow: var(--shadow-sm);
+            border-top: 1px solid var(--border-color);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 200;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.08);
         }
 
         .nav-tab {
@@ -220,6 +222,25 @@
             letter-spacing: -0.3px;
         }
 
+        /* Header with inline task selector */
+        .card-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .task-selector.inline {
+            display: inline-flex;
+            margin-bottom: 0;
+        }
+
+        .task-selector.inline .task-option {
+            padding: 10px 12px;
+            max-width: none;
+        }
+
         /* Camera Section */
         .camera-container {
             position: relative;
@@ -259,9 +280,10 @@
         }
 
         /* Task Selector */
+        /* Task Selector (refactored) */
         .task-selector {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            display: flex;
+            flex-direction: column;
             gap: 12px;
             margin-bottom: 16px;
         }
@@ -274,6 +296,7 @@
             cursor: pointer;
             transition: all 0.3s;
             background: var(--white);
+            max-width: 220px;
         }
 
         .task-option:hover {
@@ -285,6 +308,23 @@
             border-color: var(--primary-color);
             background: #eff6ff;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .task-dropdown-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 320px;
+        }
+
+        #manualTaskSelect {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--white);
+            cursor: pointer;
         }
 
         .task-option[style*="pointer-events: none"] {
@@ -542,9 +582,10 @@
             color: #065f46;
         }
 
+        /* Updated medium (distinct yellow) */
         .quality-medium {
-            background: #fef3c7;
-            color: #92400e;
+            background: #fff7b3; /* lighter yellow */
+            color: #7a5d00;
         }
 
         .quality-poor {
@@ -572,9 +613,9 @@
         }
 
         .score-circle.medium {
-            border-color: var(--warning-color);
-            background: #fef3c7;
-            color: #92400e;
+            border-color: #eab308; /* amber-500 */
+            background: #fef9c3; /* light yellow */
+            color: #854d0e;
         }
 
         .score-circle.poor {
@@ -688,7 +729,7 @@
         }
 
         .stat-card.warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
         }
 
         .stat-card.danger {
@@ -793,7 +834,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 2; /* Safari/WebKit */
+            line-clamp: 2; /* Standard */
             -webkit-box-orient: vertical;
         }
 
@@ -1132,7 +1174,7 @@
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="nav-tabs">
+        <div class="nav-tabs" id="bottomNav">
             <button class="nav-tab active" onclick="switchTab('inspect')">📸 Inspect</button>
             <button class="nav-tab" onclick="switchTab('dashboard')">📊 Dashboard</button>
             <button class="nav-tab" onclick="switchTab('history')">📋 History</button>
@@ -1151,8 +1193,16 @@
 
             <!-- Task Selector -->
             <div class="card">
-                <div class="card-header">Select Cleaning Task</div>
-                <div class="task-selector" id="taskSelector"></div>
+                <div class="card-header-row">
+                    <div class="card-header" style="margin-bottom:0;">Select Cleaning Task</div>
+                    <div class="task-selector inline" id="taskSelector"></div>
+                </div>
+                <div class="task-dropdown-wrapper" id="manualTaskWrapper" style="display:none;">
+                    <label for="manualTaskSelect" style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Manual Tasks</label>
+                    <select id="manualTaskSelect" onchange="manualTaskChanged()">
+                        <option value="">-- Choose Task --</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Single Upload Section -->
@@ -1369,8 +1419,11 @@
 
                 const taskSelector = document.getElementById('taskSelector');
                 taskSelector.innerHTML = '';
+                const manualTaskWrapper = document.getElementById('manualTaskWrapper');
+                const manualTaskSelect = document.getElementById('manualTaskSelect');
+                manualTaskSelect.innerHTML = '<option value="">-- Choose Task --</option>';
 
-                // Add auto-detect option first
+                // Auto-detect prominent card
                 const autoDetectDiv = document.createElement('div');
                 autoDetectDiv.className = `task-option ${selectedTask === 'auto-detect' ? 'selected' : ''}`;
                 autoDetectDiv.setAttribute('data-task', 'auto-detect');
@@ -1381,18 +1434,16 @@
                 `;
                 taskSelector.appendChild(autoDetectDiv);
 
-                // Add manual task options
+                // Populate dropdown with remaining tasks
                 Object.entries(tasks).forEach(([key, task]) => {
-                    const div = document.createElement('div');
-                    div.className = `task-option ${key === selectedTask ? 'selected' : ''}`;
-                    div.setAttribute('data-task', key);
-                    div.onclick = () => selectTask(key);
-                    div.innerHTML = `
-                        <div class="task-icon">${TASK_ICONS[key] || '📋'}</div>
-                        <div class="task-name">${task.name}</div>
-                    `;
-                    taskSelector.appendChild(div);
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.textContent = task.name;
+                    if (key === selectedTask) opt.selected = true;
+                    manualTaskSelect.appendChild(opt);
                 });
+
+                manualTaskWrapper.style.display = 'block';
             } catch (error) {
                 console.error('Error loading tasks:', error);
             }
@@ -1401,10 +1452,24 @@
         // Select Task
         function selectTask(taskKey) {
             selectedTask = taskKey;
-            document.querySelectorAll('.task-option').forEach(el => {
-                el.classList.remove('selected');
-            });
-            event.currentTarget.classList.add('selected');
+            // Highlight only auto-detect card if chosen
+            document.querySelectorAll('.task-option').forEach(el => el.classList.remove('selected'));
+            const autoCard = document.querySelector('.task-option[data-task="auto-detect"]');
+            if (taskKey === 'auto-detect' && autoCard) autoCard.classList.add('selected');
+            // Sync dropdown selection if manual
+            if (taskKey !== 'auto-detect') {
+                const manualTaskSelect = document.getElementById('manualTaskSelect');
+                if (manualTaskSelect) manualTaskSelect.value = taskKey;
+            }
+        }
+
+        function manualTaskChanged() {
+            const value = document.getElementById('manualTaskSelect').value;
+            if (value) {
+                selectTask(value);
+            } else {
+                selectTask('auto-detect');
+            }
         }
 
         // Select Task Programmatically (without event)
