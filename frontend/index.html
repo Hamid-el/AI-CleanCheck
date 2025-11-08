@@ -1500,7 +1500,11 @@
                 taskSelector.innerHTML = '';
                 const manualTaskWrapper = document.getElementById('manualTaskWrapper');
                 const manualTaskSelect = document.getElementById('manualTaskSelect');
-                manualTaskSelect.innerHTML = '<option value="">-- Choose Task --</option>';
+                manualTaskSelect.innerHTML = '';
+                const placeholderOpt = document.createElement('option');
+                placeholderOpt.value = '';
+                placeholderOpt.textContent = t('inspect.chooseTask');
+                manualTaskSelect.appendChild(placeholderOpt);
 
                 // Auto-detect prominent card
                 const autoDetectDiv = document.createElement('div');
@@ -1509,7 +1513,7 @@
                 autoDetectDiv.onclick = () => selectTask('auto-detect');
                 autoDetectDiv.innerHTML = `
                     <div class="task-icon">🤖</div>
-                    <div class="task-name">Auto-detect</div>
+                    <div class="task-name">${t('inspect.autoDetect')}</div>
                 `;
                 taskSelector.appendChild(autoDetectDiv);
 
@@ -1518,7 +1522,8 @@
                     const opt = document.createElement('option');
                     opt.value = key;
                     const icon = TASK_ICONS[key] || '📋';
-                    opt.textContent = `${icon} ${task.name}`;
+                    const label = t(`tasks.${key}`) || task.name;
+                    opt.textContent = `${icon} ${label}`;
                     if (key === selectedTask) opt.selected = true;
                     manualTaskSelect.appendChild(opt);
                 });
@@ -1857,17 +1862,21 @@
                 const qualityClass = result.assessment.quality.toLowerCase();
                 const hasObservations = result.assessment.observations && result.assessment.observations.length > 0;
                 const canvasId = `batchCanvas${index}`;
+                const displayedTaskName = result.taskType ? (t(`tasks.${result.taskType}`) || result.taskName) : result.taskName;
+                const autodetectedName = (result.assessment && (result.assessment.taskType || result.assessment.detectedTaskType))
+                    ? (t(`tasks.${result.assessment.taskType || result.assessment.detectedTaskType}`) || result.assessment.taskName || result.taskName)
+                    : (result.assessment.taskName || result.taskName);
 
                 html += `
                     <div class="result-card" style="margin-top: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
                             <div>
                                 <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
-                                    #${index + 1}: ${result.taskName}
+                                    #${index + 1}: ${displayedTaskName}
                                 </div>
                                 ${result.assessment.detectedTaskType ? `
                                     <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">
-                                        🤖 Auto-detected: ${result.assessment.taskName || result.taskName}
+                                        🤖 Auto-detected: ${autodetectedName}
                                     </div>
                                 ` : ''}
                                 <div style="font-size: 13px; color: var(--text-secondary);">${result.imageName || 'Image ' + (index + 1)}</div>
@@ -2051,6 +2060,10 @@
         function displayResult(result, imageData = null) {
             const { assessment, taskName } = result;
             const qualityClass = assessment.quality.toLowerCase();
+            const taskLabel = result.taskType ? (t(`tasks.${result.taskType}`) || taskName) : taskName;
+            const autodetectedName = (assessment && (assessment.taskType || assessment.detectedTaskType))
+                ? (t(`tasks.${assessment.taskType || assessment.detectedTaskType}`) || assessment.taskName || taskName)
+                : (assessment.taskName || taskName);
 
             const resultContainer = document.getElementById('resultContainer');
 
@@ -2076,10 +2089,10 @@
 
                     <div class="result-header">
                         <div>
-                            <h3 style="font-size: 20px; margin-bottom: 8px;">${taskName}</h3>
+                            <h3 style="font-size: 20px; margin-bottom: 8px;">${taskLabel}</h3>
                             ${assessment.detectedTaskType ? `
                                 <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
-                                    🤖 Auto-detected: ${assessment.taskName || taskName}
+                                    🤖 Auto-detected: ${autodetectedName}
                                 </div>
                             ` : ''}
                             <div class="quality-badge quality-${qualityClass}">${assessment.quality}</div>
@@ -2367,6 +2380,7 @@
                     const formattedDate = formatDateTime(item.timestamp);
                     const currentUser = getCurrentUser();
                     const isAdmin = currentUser && currentUser.role === 'admin';
+                    const translatedTaskName = t(`tasks.${item.taskType}`) || item.taskName;
 
                     // Show creator name if admin is viewing
                     const creatorInfo = (isAdmin && item.userName)
@@ -2389,7 +2403,7 @@
                                 ${editScoreBtn}
                             </div>
                             <div class="history-content">
-                                <div class="history-task">${TASK_ICONS[item.taskType] || '📋'} ${item.taskName}</div>
+                                <div class="history-task">${TASK_ICONS[item.taskType] || '📋'} ${translatedTaskName}</div>
                                 ${creatorInfo}
                                 <div class="history-time">📅 ${formattedDate}</div>
                                 <div class="history-summary" id="summary-${item.id}" style="display:flex; align-items:flex-start; gap:6px;">
@@ -2757,7 +2771,8 @@
         setLanguage = function(lang) {
             originalSetLanguage(lang);
             updateLanguageButtons();
-            // Refresh dynamic content
+            // Refresh dynamic content including task names
+            loadTasks();
             loadHistory();
             loadStats();
             if (document.getElementById('tab-users').classList.contains('active')) {
