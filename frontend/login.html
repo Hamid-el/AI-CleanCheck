@@ -196,7 +196,9 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <div class="login-logo">🟢</div>
+            <div class="login-logo">
+                <img src="https://www.wisag.de/fileadmin/templates/img/wisag-logo.svg" alt="WISAG Logo" style="width: 100%; height: auto; filter: brightness(0) invert(1);">
+            </div>
             <h1>AI CleanCheck</h1>
             <p>WISAG Quality Assurance</p>
         </div>
@@ -219,14 +221,20 @@
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Enter your password"
-                        autocomplete="current-password"
-                        required
-                    >
+                    <div style="position: relative;">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                            style="padding-right: 45px;"
+                        >
+                        <button type="button" onclick="togglePassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 20px; padding: 0; color: var(--text-secondary);">
+                            👁️
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-login" id="loginBtn">
@@ -242,6 +250,19 @@
 
     <script>
         const API_URL = 'http://192.168.8.203:3000/api';
+
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = event.currentTarget;
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🔒';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
 
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');

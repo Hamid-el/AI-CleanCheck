@@ -95,6 +95,7 @@ const CLEANING_TASKS = {
   'window': {
     name: 'Window',
     criteria: [
+      'Window should be CLOSED',
       'Glass should be streak-free',
       'No smudges or fingerprints',
       'Window sill should be clean',
@@ -125,7 +126,7 @@ Area-specific criteria:
 - Whiteboard: Text fully removed, no residues, magnets/markers organized
 - Desk Surface: Dust-free, no stains/spills, items organized, crumb-free and debris-free
 - Floor: No dirt/debris, no stains/spills, edges/corners clean, surface dry
-- Window: Streak-free glass, no smudges/fingerprints, sill clean, no dirt/spots
+- Window: Closed window, Streak-free glass, no smudges/fingerprints, sill clean, no dirt/spots
 
 | No. | Task                                | Evaluation Criteria                                            | **Green (2 Points)**                           | **Orange (1 Point)**                      | **Red (0 Points)**                                  |
 | --- | ----------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------- | --------------------------------------------------- |
@@ -191,7 +192,7 @@ ${task.criteria.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 | 2   | Empty / check the trash bin         | Bin visibly empty, new bag inserted, no waste on the floor     | Bin empty, new bag properly inserted           | Partially emptied, bag not replaced       | Bin still full or dirty                             |
 | 3   | Clean / organize the whiteboard     | Text fully removed without residues, magnets/markers organized | Whiteboard clean, no residues, fully organized | Light traces of text, partially organized | Text still visible, board unorganized               |
 | 4   | Tidy up the windowsill / shelf area | Waste removed, dirt (e.g., soil) cleared, surface evenly clean | Windowsill clean and free of dirt/waste        | Some objects or light dirt still visible  | Area messy and dirty                                |
-| 5   | Close windows                       | All windows closed                                             | All windows closed                             | Only a few windows closed                 | All windows open                                    |
+| 5   | Closed or OPEN windows only          | All windows should be closed                                             | All windows closed                             | Only a few windows closed                 | All windows open                                    |
 
 
 Provide your assessment in the following JSON format:
@@ -291,10 +292,17 @@ app.post('/api/analyze', async (req, res) => {
       return res.status(400).json({ error: 'Image data is required' });
     }
 
-    // Validate task type
-    const validTaskType = taskType && CLEANING_TASKS[taskType] ? taskType : 'desk-surface';
+    // Validate task type - allow 'auto-detect' to pass through
+    let validTaskType;
+    if (taskType === 'auto-detect' || !taskType) {
+      validTaskType = 'auto-detect';
+    } else if (CLEANING_TASKS[taskType]) {
+      validTaskType = taskType;
+    } else {
+      validTaskType = 'desk-surface';
+    }
 
-    console.log(`Analyzing ${validTaskType} image...`);
+    console.log(`Analyzing image with mode: ${validTaskType}`);
 
     // Call OpenAI Vision API
     const response = await openai.chat.completions.create({
@@ -345,11 +353,23 @@ app.post('/api/analyze', async (req, res) => {
     }
 
     // Create inspection record
+    // If auto-detect was used and AI provided a detected type, use that
+    let finalTaskType = validTaskType;
+    let finalTaskName = 'Auto-detect';
+
+    if (validTaskType === 'auto-detect' && assessment.detectedTaskType) {
+      finalTaskType = assessment.detectedTaskType;
+      finalTaskName = assessment.taskName || CLEANING_TASKS[assessment.detectedTaskType]?.name || 'Unknown';
+    } else if (CLEANING_TASKS[validTaskType]) {
+      finalTaskType = validTaskType;
+      finalTaskName = CLEANING_TASKS[validTaskType].name;
+    }
+
     const inspection = {
       id: uuidv4(),
       timestamp: new Date().toISOString(),
-      taskType: validTaskType,
-      taskName: CLEANING_TASKS[validTaskType].name,
+      taskType: finalTaskType,
+      taskName: finalTaskName,
       assessment,
       metadata: metadata || {},
     };

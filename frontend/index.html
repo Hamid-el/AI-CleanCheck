@@ -1169,17 +1169,23 @@
                         </div>
                     </div>
 
-                    <div class="btn-group">
+                    <!-- <div class="btn-group">
                         <button class="btn btn-primary" id="startCameraBtn" onclick="startCamera()">
                             📷 Live Camera
                         </button>
-                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                            📸 Take/Upload Photo
+                    </div> -->
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="document.getElementById('cameraInput').click()">
+                            📷 Take Photo
+                        </button>
+                        <button class="btn btn-primary" onclick="document.getElementById('galleryInput').click()">
+                            📁 Upload Photo
                         </button>
                     </div>
-                    <input type="file" id="fileInput" accept="image/*" onchange="handleFileUpload(event)">
+                    <input type="file" id="cameraInput" accept="image/*" capture onchange="handleFileUpload(event)" style="display: none;">
+                    <input type="file" id="galleryInput" accept="image/*" onchange="handleFileUpload(event)" style="display: none;">
 
-                    <button class="btn btn-success" id="captureBtn" onclick="captureAndAnalyze()" disabled>
+                    <button class="btn btn-success" id="captureBtn" onclick="captureAndAnalyze()" disabled style="width: 100%; margin-top: 12px;">
                         🔍 Capture & Analyze
                     </button>
 
@@ -1436,46 +1442,46 @@
         }
 
         // Start Camera
-        async function startCamera() {
-            try {
-                const constraints = {
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    }
-                };
+        // async function startCamera() {
+        //     try {
+        //         const constraints = {
+        //             video: {
+        //                 facingMode: 'environment',
+        //                 width: { ideal: 1920 },
+        //                 height: { ideal: 1080 }
+        //             }
+        //         };
 
-                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const video = document.getElementById('video');
-                video.srcObject = currentStream;
-                video.style.display = 'block';
-                document.getElementById('cameraPlaceholder').style.display = 'none';
-                document.getElementById('captureBtn').disabled = false;
-                document.getElementById('startCameraBtn').textContent = '🔴 Stop Camera';
-                document.getElementById('startCameraBtn').onclick = stopCamera;
-            } catch (error) {
-                console.error('Error accessing camera:', error);
+        //         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        //         const video = document.getElementById('video');
+        //         video.srcObject = currentStream;
+        //         video.style.display = 'block';
+        //         document.getElementById('cameraPlaceholder').style.display = 'none';
+        //         document.getElementById('captureBtn').disabled = false;
+        //         document.getElementById('startCameraBtn').textContent = '🔴 Stop Camera';
+        //         document.getElementById('startCameraBtn').onclick = stopCamera;
+        //     } catch (error) {
+        //         console.error('Error accessing camera:', error);
 
-                // Better error messages for different scenarios
-                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-                const isHTTPS = window.location.protocol === 'https:';
+        //         // Better error messages for different scenarios
+        //         const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        //         const isHTTPS = window.location.protocol === 'https:';
 
-                let message = '❌ Live Camera unavailable. ';
+        //         let message = '❌ Live Camera unavailable. ';
 
-                if (isSafari && !isHTTPS) {
-                    message += 'Safari requires HTTPS for camera. Use "Take/Upload Photo" button instead! 📸';
-                } else if (error.name === 'NotAllowedError') {
-                    message += 'Please allow camera permissions. Or use "Take/Upload Photo" button. 📸';
-                } else if (error.name === 'NotFoundError') {
-                    message += 'No camera found. Use "Take/Upload Photo" button. 📸';
-                } else {
-                    message += 'Use "Take/Upload Photo" button instead. 📸';
-                }
+        //         if (isSafari && !isHTTPS) {
+        //             message += 'Safari requires HTTPS for camera. Use "Take/Upload Photo" button instead! 📸';
+        //         } else if (error.name === 'NotAllowedError') {
+        //             message += 'Please allow camera permissions. Or use "Take/Upload Photo" button. 📸';
+        //         } else if (error.name === 'NotFoundError') {
+        //             message += 'No camera found. Use "Take/Upload Photo" button. 📸';
+        //         } else {
+        //             message += 'Use "Take/Upload Photo" button instead. 📸';
+        //         }
 
-                showToast(message, 'error');
-            }
-        }
+        //         showToast(message, 'error');
+        //     }
+        // }
 
         // Stop Camera
         function stopCamera() {
@@ -1486,8 +1492,8 @@
                 video.style.display = 'none';
                 document.getElementById('cameraPlaceholder').style.display = 'flex';
                 document.getElementById('captureBtn').disabled = true;
-                document.getElementById('startCameraBtn').textContent = '📷 Live Camera';
-                document.getElementById('startCameraBtn').onclick = startCamera;
+                // document.getElementById('startCameraBtn').textContent = '📷 Live Camera';
+                // document.getElementById('startCameraBtn').onclick = startCamera;
             }
         }
 
@@ -2090,8 +2096,8 @@
 
                     // Draw label background
                     const label = `${idx + 1}. ${obs.item}`;
-                    const labelPadding = 8;
-                    const fontSize = 14;
+                    const labelPadding = 10;
+                    const fontSize = 20;
                     ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
                     const labelWidth = ctx.measureText(label).width;
 
@@ -2106,7 +2112,7 @@
                     }
 
                     // Draw label background
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
                     ctx.fillRect(labelX, labelY - fontSize - labelPadding, labelWidth + labelPadding * 2, fontSize + labelPadding * 2);
 
                     // Draw label text
@@ -2114,22 +2120,22 @@
                     ctx.fillText(label, labelX + labelPadding, labelY - labelPadding);
 
                     // Draw coordinates on axes
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-                    ctx.font = `12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.font = `bold 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
 
                     // X coordinate at top
                     const xCoordText = `X:${Math.round(obs.x)}%`;
                     const xCoordWidth = ctx.measureText(xCoordText).width;
-                    ctx.fillRect(x - xCoordWidth / 2 - 4, 5, xCoordWidth + 8, 18);
+                    ctx.fillRect(x - xCoordWidth / 2 - 6, 5, xCoordWidth + 12, 24);
                     ctx.fillStyle = 'white';
-                    ctx.fillText(xCoordText, x - xCoordWidth / 2, 18);
+                    ctx.fillText(xCoordText, x - xCoordWidth / 2, 22);
 
                     // Y coordinate at left
                     const yCoordText = `Y:${Math.round(obs.y)}%`;
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-                    ctx.fillRect(5, y - 9, ctx.measureText(yCoordText).width + 8, 18);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(5, y - 12, ctx.measureText(yCoordText).width + 12, 24);
                     ctx.fillStyle = 'white';
-                    ctx.fillText(yCoordText, 9, y + 4);
+                    ctx.fillText(yCoordText, 11, y + 6);
                 });
             };
 
@@ -2180,7 +2186,7 @@
                     // Draw label
                     const label = `${idx + 1}. ${obs.item}`;
                     const labelPadding = 10;
-                    const fontSize = 18;
+                    const fontSize = 20;
                     ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
                     const labelWidth = ctx.measureText(label).width;
 
@@ -2200,16 +2206,16 @@
 
                     // Draw coordinates
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.font = `bold 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
+                    ctx.font = `bold 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
                     const xCoordText = `X:${Math.round(obs.x)}%`;
                     const xCoordWidth = ctx.measureText(xCoordText).width;
-                    ctx.fillRect(x - xCoordWidth / 2 - 6, 5, xCoordWidth + 12, 22);
+                    ctx.fillRect(x - xCoordWidth / 2 - 6, 5, xCoordWidth + 12, 24);
                     ctx.fillStyle = 'white';
-                    ctx.fillText(xCoordText, x - xCoordWidth / 2, 21);
+                    ctx.fillText(xCoordText, x - xCoordWidth / 2, 22);
 
                     const yCoordText = `Y:${Math.round(obs.y)}%`;
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.fillRect(5, y - 11, ctx.measureText(yCoordText).width + 12, 22);
+                    ctx.fillRect(5, y - 12, ctx.measureText(yCoordText).width + 12, 24);
                     ctx.fillStyle = 'white';
                     ctx.fillText(yCoordText, 11, y + 6);
                 });
