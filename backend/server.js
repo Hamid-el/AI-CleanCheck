@@ -105,9 +105,82 @@ const CLEANING_TASKS = {
 
 // Quality assessment prompt for OpenAI Vision
 function generateAssessmentPrompt(taskType) {
-  const task = CLEANING_TASKS[taskType] || CLEANING_TASKS['desk-surface'];
+  const isAutoDetect = !taskType || taskType === 'auto-detect';
 
-  return `You are a professional cleaning quality inspector for WISAG facility management services. Analyze this image of a ${task.name} and provide a detailed quality assessment.
+  if (isAutoDetect) {
+    // Auto-detection prompt
+    return `You are a professional cleaning quality inspector for WISAG facility management services. Analyze this image and:
+
+1. FIRST, automatically detect what type of cleaning area this is from these options:
+   - "trash-bin": Trash bin or waste container
+   - "whiteboard": Whiteboard or writing surface
+   - "desk-surface": Desk, table, or work surface
+   - "floor": Floor or ground surface
+   - "window": Window, glass, or transparent surface
+
+2. THEN, evaluate the cleaning quality based on the appropriate criteria for that area type.
+
+Area-specific criteria:
+- Trash Bin: Bin should be empty, clean, new bag properly inserted, no waste around
+- Whiteboard: Text fully removed, no residues, magnets/markers organized
+- Desk Surface: Dust-free, no stains/spills, items organized, crumb-free and debris-free
+- Floor: No dirt/debris, no stains/spills, edges/corners clean, surface dry
+- Window: Streak-free glass, no smudges/fingerprints, sill clean, no dirt/spots
+
+| No. | Task                                | Evaluation Criteria                                            | **Green (2 Points)**                           | **Orange (1 Point)**                      | **Red (0 Points)**                                  |
+| --- | ----------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------- | --------------------------------------------------- |
+| 1   | Clean / clear the table surface     | No visible stains or crumbs, no trash left on the surface      | Table completely cleared and clean             | Some items or stains still visible        | Surface largely unchanged or only partially cleaned |
+| 2   | Empty / check the trash bin         | Bin visibly empty, new bag inserted, no waste on the floor     | Bin empty, new bag properly inserted           | Partially emptied, bag not replaced       | Bin still full or dirty                             |
+| 3   | Clean / organize the whiteboard     | Text fully removed without residues, magnets/markers organized | Whiteboard clean, no residues, fully organized | Light traces of text, partially organized | Text still visible, board unorganized               |
+| 4   | Tidy up the windowsill / shelf area | Waste removed, dirt (e.g., soil) cleared, surface evenly clean | Windowsill clean and free of dirt/waste        | Some objects or light dirt still visible  | Area messy and dirty                                |
+| 5   | Close windows                       | All windows closed                                             | All windows closed                             | Only a few windows closed                 | All windows open                                    |
+
+IMPORTANT: Identify and mark the locations of specific observations (objects, stains, debris, issues) in the image.
+For each observation, provide the approximate location as a percentage of image dimensions (0-100% for both x and y coordinates).
+
+Provide your assessment in the following JSON format:
+{
+  "detectedTaskType": "<trash-bin|whiteboard|desk-surface|floor|window>",
+  "taskName": "<name of the detected area type>",
+  "overallScore": <number 0-100>,
+  "quality": "<GOOD|MEDIUM|POOR>",
+  "summary": "<brief one-sentence summary>",
+  "findings": [
+    {
+      "aspect": "<what was evaluated>",
+      "status": "<PASS|FAIL>",
+      "description": "<detailed observation>"
+    }
+  ],
+  "recommendations": ["<list of improvement suggestions if any>"],
+  "confidence": <number 0-100>,
+  "observations": [
+    {
+      "item": "<what was observed: e.g., 'coffee cup', 'stain', 'debris', 'paper stack'>",
+      "type": "<OBJECT|STAIN|DEBRIS|ISSUE>",
+      "x": <number 0-100, horizontal position as percentage>,
+      "y": <number 0-100, vertical position as percentage>,
+      "severity": "<LOW|MEDIUM|HIGH>"
+    }
+  ]
+}
+
+Quality ratings:
+- GOOD (80-100): Meets all standards, professional quality
+- MEDIUM (50-79): Acceptable but needs improvement
+- POOR (0-49): Does not meet standards, requires rework
+
+For observations:
+- Identify ALL visible objects, stains, debris, or issues in the image
+- Provide accurate coordinate positions (x: left to right, y: top to bottom)
+- Mark severity based on impact on cleanliness
+
+Be objective, specific, and provide actionable feedback with precise locations.`;
+  } else {
+    // Manual task type selected
+    const task = CLEANING_TASKS[taskType] || CLEANING_TASKS['desk-surface'];
+
+    return `You are a professional cleaning quality inspector for WISAG facility management services. Analyze this image of a ${task.name} and provide a detailed quality assessment.
 
 Evaluation Criteria:
 ${task.criteria.map((c, i) => `${i + 1}. ${c}`).join('\n')}
@@ -157,6 +230,7 @@ For observations:
 - Mark severity based on impact on cleanliness
 
 Be objective, specific, and provide actionable feedback with precise locations.`;
+  }
 }
 
 // Simple user database (hardcoded for demo)

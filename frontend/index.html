@@ -287,6 +287,12 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
+        .task-option[style*="pointer-events: none"] {
+            cursor: not-allowed;
+            background: #f5f5f5;
+            border-color: #d1d5db;
+        }
+
         .task-icon {
             font-size: 32px;
             margin-bottom: 8px;
@@ -1288,7 +1294,7 @@
 
         // State
         let currentStream = null;
-        let selectedTask = 'desk-surface';
+        let selectedTask = 'auto-detect'; // Default to auto-detection
         let capturedImage = null;
         let batchImages = [];
         let batchResults = [];
@@ -1339,13 +1345,35 @@
             const mode = document.getElementById('uploadModeSelect').value;
             const singleSection = document.getElementById('singleUploadSection');
             const batchSection = document.getElementById('batchUploadSection');
+            const autoDetectOption = document.querySelector('.task-option[data-task="auto-detect"]');
 
             if (mode === 'single') {
                 singleSection.style.display = 'block';
                 batchSection.style.display = 'none';
+
+                // Enable auto-detect option
+                if (autoDetectOption) {
+                    autoDetectOption.style.display = 'block';
+                    autoDetectOption.style.opacity = '1';
+                    autoDetectOption.style.pointerEvents = 'auto';
+                    autoDetectOption.title = '';
+                }
             } else if (mode === 'batch') {
                 singleSection.style.display = 'none';
                 batchSection.style.display = 'block';
+
+                // If auto-detect is selected, switch to desk-surface
+                if (selectedTask === 'auto-detect') {
+                    selectTaskByKey('desk-surface');
+                }
+
+                // Disable auto-detect option
+                if (autoDetectOption) {
+                    autoDetectOption.style.opacity = '0.5';
+                    autoDetectOption.style.pointerEvents = 'none';
+                    autoDetectOption.classList.remove('selected');
+                    autoDetectOption.title = 'Auto-detect is only available for single image mode';
+                }
             }
         }
 
@@ -1358,9 +1386,22 @@
                 const taskSelector = document.getElementById('taskSelector');
                 taskSelector.innerHTML = '';
 
+                // Add auto-detect option first
+                const autoDetectDiv = document.createElement('div');
+                autoDetectDiv.className = `task-option ${selectedTask === 'auto-detect' ? 'selected' : ''}`;
+                autoDetectDiv.setAttribute('data-task', 'auto-detect');
+                autoDetectDiv.onclick = () => selectTask('auto-detect');
+                autoDetectDiv.innerHTML = `
+                    <div class="task-icon">🤖</div>
+                    <div class="task-name">Auto-detect</div>
+                `;
+                taskSelector.appendChild(autoDetectDiv);
+
+                // Add manual task options
                 Object.entries(tasks).forEach(([key, task]) => {
                     const div = document.createElement('div');
                     div.className = `task-option ${key === selectedTask ? 'selected' : ''}`;
+                    div.setAttribute('data-task', key);
                     div.onclick = () => selectTask(key);
                     div.innerHTML = `
                         <div class="task-icon">${TASK_ICONS[key] || '📋'}</div>
@@ -1380,6 +1421,18 @@
                 el.classList.remove('selected');
             });
             event.currentTarget.classList.add('selected');
+        }
+
+        // Select Task Programmatically (without event)
+        function selectTaskByKey(taskKey) {
+            selectedTask = taskKey;
+            document.querySelectorAll('.task-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            const targetOption = document.querySelector(`.task-option[data-task="${taskKey}"]`);
+            if (targetOption) {
+                targetOption.classList.add('selected');
+            }
         }
 
         // Start Camera
@@ -1684,6 +1737,11 @@
                                 <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
                                     #${index + 1}: ${result.taskName}
                                 </div>
+                                ${result.assessment.detectedTaskType ? `
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">
+                                        🤖 Auto-detected: ${result.assessment.taskName || result.taskName}
+                                    </div>
+                                ` : ''}
                                 <div style="font-size: 13px; color: var(--text-secondary);">${result.imageName || 'Image ' + (index + 1)}</div>
                             </div>
                             <div class="score-circle ${qualityClass}" style="width: 60px; height: 60px; font-size: 20px;">
@@ -1894,6 +1952,11 @@
                     <div class="result-header">
                         <div>
                             <h3 style="font-size: 20px; margin-bottom: 8px;">${taskName}</h3>
+                            ${assessment.detectedTaskType ? `
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+                                    🤖 Auto-detected: ${assessment.taskName || taskName}
+                                </div>
+                            ` : ''}
                             <div class="quality-badge quality-${qualityClass}">${assessment.quality}</div>
                         </div>
                         <div class="score-circle ${qualityClass}">
