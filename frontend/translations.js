@@ -31,7 +31,8 @@ const translations = {
         // Header
         header: {
             logout: 'Logout',
-            language: 'Language'
+            language: 'Language',
+            logoutConfirm: 'Are you sure you want to logout?'
         },
 
         // Inspect Tab
@@ -103,7 +104,9 @@ const translations = {
             title: 'Recent Inspections',
             noInspections: 'No inspections yet',
             startCapturing: 'Start by capturing and analyzing a cleaning area',
-            by: 'By'
+            by: 'By',
+            emptyMessage: 'No inspections yet',
+            emptyHint: 'Start by capturing and analyzing a cleaning area'
         },
 
         // Users Management
@@ -133,7 +136,14 @@ const translations = {
             failedToLoadUsers: 'Failed to load users',
             sessionExpired: 'Session expired',
             analysisComplete: 'Analysis complete!',
-            batchAnalysisComplete: 'Batch analysis complete!'
+            batchAnalysisComplete: 'Batch analysis complete!',
+            noImagesSelected: 'No images selected',
+            processingImages: 'Processing {count} images...',
+            analyzingImage: 'Analyzing image {current} of {total}...',
+            successfullyAnalyzed: 'Successfully analyzed {count} images!',
+            batchAnalysisFailed: 'Batch Analysis Failed',
+            batchAnalysisError: 'Batch analysis failed. See details above.',
+            successfullyAnalyzedPartial: 'Successfully analyzed: {count} of {total} images'
         },
 
         // Quality levels
@@ -180,7 +190,8 @@ const translations = {
         // Header
         header: {
             logout: 'Abmelden',
-            language: 'Sprache'
+            language: 'Sprache',
+            logoutConfirm: 'Sind Sie sicher, dass Sie sich abmelden möchten?'
         },
 
         // Inspect Tab
@@ -252,7 +263,9 @@ const translations = {
             title: 'Letzte Inspektionen',
             noInspections: 'Noch keine Inspektionen',
             startCapturing: 'Beginnen Sie mit der Erfassung und Analyse eines Reinigungsbereichs',
-            by: 'Von'
+            by: 'Von',
+            emptyMessage: 'Noch keine Inspektionen',
+            emptyHint: 'Beginnen Sie mit der Erfassung und Analyse eines Reinigungsbereichs'
         },
 
         // Users Management
@@ -282,7 +295,14 @@ const translations = {
             failedToLoadUsers: 'Fehler beim Laden der Benutzer',
             sessionExpired: 'Sitzung abgelaufen',
             analysisComplete: 'Analyse abgeschlossen!',
-            batchAnalysisComplete: 'Batch-Analyse abgeschlossen!'
+            batchAnalysisComplete: 'Batch-Analyse abgeschlossen!',
+            noImagesSelected: 'Keine Bilder ausgewählt',
+            processingImages: '{count} Bilder werden verarbeitet...',
+            analyzingImage: 'Bild {current} von {total} wird analysiert...',
+            successfullyAnalyzed: '{count} Bilder erfolgreich analysiert!',
+            batchAnalysisFailed: 'Batch-Analyse fehlgeschlagen',
+            batchAnalysisError: 'Batch-Analyse fehlgeschlagen. Siehe Details oben.',
+            successfullyAnalyzedPartial: 'Erfolgreich analysiert: {count} von {total} Bildern'
         },
 
         // Quality levels
@@ -401,7 +421,9 @@ const translations = {
             title: 'Inspecții recente',
             noInspections: 'Nicio inspecție încă',
             startCapturing: 'Începeți prin capturarea și analiza unei zone de curățenie',
-            by: 'De'
+            by: 'De',
+            emptyMessage: 'Nicio inspecție încă',
+            emptyHint: 'Începeți prin capturarea și analiza unei zone de curățenie'
         },
 
         // Users Management
@@ -431,7 +453,14 @@ const translations = {
             failedToLoadUsers: 'Eroare la încărcarea utilizatorilor',
             sessionExpired: 'Sesiune expirată',
             analysisComplete: 'Analiză completă!',
-            batchAnalysisComplete: 'Analiză lot completă!'
+            batchAnalysisComplete: 'Analiză lot completă!',
+            noImagesSelected: 'Nicio imagine selectată',
+            processingImages: 'Se procesează {count} imagini...',
+            analyzingImage: 'Se analizează imaginea {current} din {total}...',
+            successfullyAnalyzed: '{count} imagini analizate cu succes!',
+            batchAnalysisFailed: 'Analiză lot eșuată',
+            batchAnalysisError: 'Analiză lot eșuată. Vezi detalii mai sus.',
+            successfullyAnalyzedPartial: 'Analizat cu succes: {count} din {total} imagini'
         },
 
         // Quality levels
@@ -461,7 +490,7 @@ function setLanguage(lang) {
     }
 }
 
-function t(key) {
+function t(key, replacements = {}) {
     const keys = key.split('.');
     let value = translations[currentLanguage];
 
@@ -469,7 +498,14 @@ function t(key) {
         value = value?.[k];
     }
 
-    return value || key;
+    let result = value || key;
+
+    // Replace placeholders like {count}, {current}, {total}
+    for (const [placeholder, replacement] of Object.entries(replacements)) {
+        result = result.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), replacement);
+    }
+
+    return result;
 }
 
 function applyTranslations() {

@@ -1286,29 +1286,29 @@
         <!-- Tab: Users (Admin Only) -->
         <div id="tab-users" class="tab-content">
             <div class="card">
-                <div class="card-header">👥 User Management</div>
-                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+                <div class="card-header" data-i18n="users.title">👥 User Management</div>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;" data-i18n="users.subtitle">
                     Create and manage staff cleaner accounts (Maximum 2 staff members)
                 </p>
 
                 <!-- Create User Form -->
                 <form onsubmit="createUser(event)" style="margin-bottom: 24px;">
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Username</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;" data-i18n="users.username">Username</label>
                         <input type="text" id="newUsername" required
                                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
                     </div>
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Full Name</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;" data-i18n="users.fullName">Full Name</label>
                         <input type="text" id="newName" required
                                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
                     </div>
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Password</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;" data-i18n="users.password">Password</label>
                         <input type="password" id="newPassword" required
                                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
                     </div>
-                    <button type="submit" class="btn btn-primary">➕ Create Staff User</button>
+                    <button type="submit" class="btn btn-primary"><span data-i18n="users.createUser">➕ Create Staff User</span></button>
                 </form>
 
                 <!-- Users List -->
@@ -1640,7 +1640,7 @@
 
         async function analyzeBatch() {
             if (batchImages.length === 0) {
-                showToast('❌ No images selected', 'error');
+                showToast(`❌ ${t('messages.noImagesSelected')}`, 'error');
                 return;
             }
 
@@ -1663,7 +1663,7 @@
                                 <div class="snake-segment"></div>
                             </div>
                         </div>
-                        <div class="loading-text">Processing ${batchImages.length} images...</div>
+                        <div class="loading-text">${t('messages.processingImages', {count: batchImages.length})}</div>
                         <div class="loading-subtext">This may take a moment</div>
                     </div>
                 </div>
@@ -1677,7 +1677,7 @@
                     // Update loading message
                     const loadingText = document.querySelector('.loading-text');
                     if (loadingText) {
-                        loadingText.textContent = `Analyzing image ${i + 1} of ${batchImages.length}...`;
+                        loadingText.textContent = t('messages.analyzingImage', {current: i + 1, total: batchImages.length});
                     }
 
                     const response = await authFetch(`${API_URL}/analyze`, {
@@ -1710,20 +1710,20 @@
                 displayBatchResults(batchResults);
                 await loadHistory();
                 await loadStats();
-                showToast(`✅ Successfully analyzed ${batchResults.length} images!`, 'success');
+                showToast(`✅ ${t('messages.successfullyAnalyzed', {count: batchResults.length})}`, 'success');
 
             } catch (error) {
                 console.error('Error in batch analysis:', error);
                 resultContainer.innerHTML = `
                     <div class="card" style="background: #fee2e2; border-left: 4px solid var(--danger-color);">
-                        <div class="card-header" style="color: var(--danger-color);">❌ Batch Analysis Failed</div>
+                        <div class="card-header" style="color: var(--danger-color);">❌ ${t('messages.batchAnalysisFailed')}</div>
                         <p style="color: var(--text-secondary); margin-bottom: 0;">${error.message}</p>
                         <p style="color: var(--text-secondary); margin-top: 12px; font-size: 13px;">
-                            Successfully analyzed: ${batchResults.length} of ${batchImages.length} images
+                            ${t('messages.successfullyAnalyzedPartial', {count: batchResults.length, total: batchImages.length})}
                         </p>
                     </div>
                 `;
-                showToast('❌ Batch analysis failed. See details above.', 'error');
+                showToast(`❌ ${t('messages.batchAnalysisError')}`, 'error');
             }
         }
 
@@ -1957,7 +1957,7 @@
                 displayResult(result, imageData);
                 await loadHistory();
                 await loadStats();
-                showToast('✅ Analysis completed successfully!', 'success');
+                showToast(`✅ ${t('messages.analysisComplete')}`, 'success');
             } catch (error) {
                 console.error('Error analyzing image:', error);
                 resultContainer.innerHTML = `
@@ -2278,8 +2278,8 @@
                     historyList.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-icon">📋</div>
-                            <div class="empty-message">No inspections yet</div>
-                            <div class="empty-hint">Start by capturing and analyzing a cleaning area</div>
+                            <div class="empty-message">${t('history.emptyMessage')}</div>
+                            <div class="empty-hint">${t('history.emptyHint')}</div>
                         </div>
                     `;
                     return;
@@ -2394,7 +2394,7 @@
 
                 const usersList = document.getElementById('usersList');
                 if (users.length === 0) {
-                    usersList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No users found</p>';
+                    usersList.innerHTML = `<p style="color: var(--text-secondary); text-align: center;">${t('users.noUsers')}</p>`;
                     return;
                 }
 
@@ -2404,24 +2404,24 @@
                         <div>
                             <div style="font-weight: 600;">${user.name}</div>
                             <div style="font-size: 13px; color: var(--text-secondary);">
-                                @${user.username} • ${user.role === 'admin' ? '👑 Admin' : '👤 Staff'}
+                                @${user.username} • ${user.role === 'admin' ? '👑 ' + t('users.admin') : '👤 ' + t('users.staff')}
                             </div>
                             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                                Created: ${new Date(user.createdAt).toLocaleDateString()}
+                                ${t('users.created')}: ${new Date(user.createdAt).toLocaleDateString()}
                             </div>
                         </div>
                         ${user.username !== 'wisag' ? `
                             <button onclick="deleteUser('${user.username}')"
                                     class="btn btn-secondary"
                                     style="width: auto; padding: 8px 16px; background: var(--danger-color); color: white; border: none;">
-                                🗑️ Delete
+                                🗑️ ${t('users.delete')}
                             </button>
                         ` : ''}
                     </div>
                 `).join('');
             } catch (error) {
                 console.error('Error loading users:', error);
-                showToast('❌ Failed to load users', 'error');
+                showToast(`❌ ${t('messages.failedToLoadUsers')}`, 'error');
             }
         }
 
@@ -2442,7 +2442,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showToast('✅ User created successfully!', 'success');
+                    showToast(`✅ ${t('messages.userCreated')}`, 'success');
                     document.getElementById('newUsername').value = '';
                     document.getElementById('newName').value = '';
                     document.getElementById('newPassword').value = '';
@@ -2452,13 +2452,13 @@
                 }
             } catch (error) {
                 console.error('Error creating user:', error);
-                showToast('❌ Failed to create user', 'error');
+                showToast(`❌ ${t('messages.failedToCreateUser')}`, 'error');
             }
         }
 
         // Delete user
         async function deleteUser(username) {
-            if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+            if (!confirm(`${t('users.deleteConfirm')} "${username}"?`)) {
                 return;
             }
 
@@ -2470,14 +2470,14 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showToast('✅ User deleted successfully!', 'success');
+                    showToast(`✅ ${t('messages.userDeleted')}`, 'success');
                     await loadUsers();
                 } else {
                     showToast(`❌ ${data.error}`, 'error');
                 }
             } catch (error) {
                 console.error('Error deleting user:', error);
-                showToast('❌ Failed to delete user', 'error');
+                showToast(`❌ ${t('messages.failedToDeleteUser')}`, 'error');
             }
         }
 
