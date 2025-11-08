@@ -1333,7 +1333,7 @@
 
         // Logout function
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+            if (confirm(t('header.logoutConfirm'))) {
                 localStorage.removeItem('wisag_session');
                 window.location.href = 'login.html';
             }

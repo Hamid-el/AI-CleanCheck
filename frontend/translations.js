@@ -349,7 +349,8 @@ const translations = {
         // Header
         header: {
             logout: 'Deconectare',
-            language: 'Limbă'
+            language: 'Limbă',
+            logoutConfirm: 'Sigur doriți să vă deconectați?'
         },
 
         // Inspect Tab
