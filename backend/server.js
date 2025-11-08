@@ -54,6 +54,9 @@ const upload = multer({
 // In-memory storage for inspection history
 let inspectionHistory = [];
 
+// In-memory session storage
+const activeSessions = new Map(); // token -> { username, role, loginTime }
+
 // Cleaning task definitions
 const CLEANING_TASKS = {
   'trash-bin': {
@@ -234,14 +237,38 @@ Be objective, specific, and provide actionable feedback with precise locations.`
   }
 }
 
-// Simple user database (hardcoded for demo)
+// User database with roles
 const USERS = {
   wisag: {
     username: 'wisag',
     password: 'wisag',
-    name: 'WISAG User'
+    name: 'WISAG Admin',
+    role: 'admin',
+    createdAt: new Date().toISOString()
   }
 };
+
+// Helper function to get user by username
+function getUser(username) {
+  return USERS[username];
+}
+
+// Helper function to create new user (admin only)
+function createUser(username, password, name, role = 'staff') {
+  if (USERS[username]) {
+    throw new Error('Username already exists');
+  }
+
+  USERS[username] = {
+    username,
+    password,
+    name,
+    role,
+    createdAt: new Date().toISOString()
+  };
+
+  return USERS[username];
+}
 
 // API Routes
 
@@ -249,6 +276,36 @@ const USERS = {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'AI CleanCheck API is running' });
 });
+
+// Authentication middleware
+function requireAuth(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  const session = activeSessions.get(token);
+  if (!session) {
+    return res.status(401).json({ error: 'Invalid or expired session' });
+  }
+
+  const user = getUser(session.username);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  req.user = { ...user, token };
+  next();
+}
+
+// Admin-only middleware
+function requireAdmin(req, res, next) {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin privileges required' });
+  }
+  next();
+}
 
 // Login endpoint
 app.post('/api/login', (req, res) => {
@@ -264,12 +321,20 @@ app.post('/api/login', (req, res) => {
     // Create session token
     const sessionToken = uuidv4();
 
+    // Store session
+    activeSessions.set(sessionToken, {
+      username: user.username,
+      role: user.role,
+      loginTime: new Date().toISOString()
+    });
+
     res.json({
       success: true,
       message: 'Login successful',
       user: {
         username: user.username,
-        name: user.name
+        name: user.name,
+        role: user.role
       },
       token: sessionToken
     });
@@ -278,13 +343,93 @@ app.post('/api/login', (req, res) => {
   }
 });
 
+// Logout endpoint
+app.post('/api/logout', requireAuth, (req, res) => {
+  activeSessions.delete(req.user.token);
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// User Management Endpoints (Admin only)
+
+// Get all users
+app.get('/api/users', requireAuth, requireAdmin, (req, res) => {
+  const users = Object.values(USERS).map(u => ({
+    username: u.username,
+    name: u.name,
+    role: u.role,
+    createdAt: u.createdAt
+  }));
+  res.json(users);
+});
+
+// Create new user
+app.post('/api/users', requireAuth, requireAdmin, (req, res) => {
+  try {
+    const { username, password, name, role } = req.body;
+
+    if (!username || !password || !name) {
+      return res.status(400).json({ error: 'Username, password, and name are required' });
+    }
+
+    // Validate role
+    if (role && role !== 'staff' && role !== 'admin') {
+      return res.status(400).json({ error: 'Role must be either "staff" or "admin"' });
+    }
+
+    // Count existing staff members
+    const staffCount = Object.values(USERS).filter(u => u.role === 'staff').length;
+    if ((!role || role === 'staff') && staffCount >= 2) {
+      return res.status(400).json({ error: 'Maximum of 2 staff members allowed' });
+    }
+
+    const newUser = createUser(username, password, name, role || 'staff');
+
+    res.json({
+      success: true,
+      message: 'User created successfully',
+      user: {
+        username: newUser.username,
+        name: newUser.name,
+        role: newUser.role,
+        createdAt: newUser.createdAt
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete user
+app.delete('/api/users/:username', requireAuth, requireAdmin, (req, res) => {
+  const { username } = req.params;
+
+  if (username === 'wisag') {
+    return res.status(400).json({ error: 'Cannot delete admin account' });
+  }
+
+  if (!USERS[username]) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  delete USERS[username];
+
+  // Remove all sessions for this user
+  for (const [token, session] of activeSessions.entries()) {
+    if (session.username === username) {
+      activeSessions.delete(token);
+    }
+  }
+
+  res.json({ success: true, message: 'User deleted successfully' });
+});
+
 // Get all cleaning task types
 app.get('/api/tasks', (req, res) => {
   res.json(CLEANING_TASKS);
 });
 
 // Analyze image with base64 data
-app.post('/api/analyze', async (req, res) => {
+app.post('/api/analyze', requireAuth, async (req, res) => {
   try {
     const { imageData, taskType, metadata } = req.body;
 
@@ -370,6 +515,8 @@ app.post('/api/analyze', async (req, res) => {
       timestamp: new Date().toISOString(),
       taskType: finalTaskType,
       taskName: finalTaskName,
+      userId: req.user.username,
+      userName: req.user.name,
       assessment,
       metadata: metadata || {},
     };
@@ -433,15 +580,36 @@ app.post('/api/analyze-upload', upload.single('image'), async (req, res) => {
   }
 });
 
-// Get inspection history
-app.get('/api/history', (req, res) => {
+// Get inspection history (filtered by user role)
+app.get('/api/history', requireAuth, (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
-  res.json(inspectionHistory.slice(0, limit));
+
+  // Filter inspections based on user role
+  let filteredHistory;
+  if (req.user.role === 'admin') {
+    // Admin sees all inspections
+    filteredHistory = inspectionHistory;
+  } else {
+    // Staff sees only their own inspections
+    filteredHistory = inspectionHistory.filter(i => i.userId === req.user.username);
+  }
+
+  res.json(filteredHistory.slice(0, limit));
 });
 
-// Get statistics
-app.get('/api/stats', (req, res) => {
-  if (inspectionHistory.length === 0) {
+// Get statistics (filtered by user role)
+app.get('/api/stats', requireAuth, (req, res) => {
+  // Filter inspections based on user role
+  let filteredHistory;
+  if (req.user.role === 'admin') {
+    // Admin sees all inspections
+    filteredHistory = inspectionHistory;
+  } else {
+    // Staff sees only their own inspections
+    filteredHistory = inspectionHistory.filter(i => i.userId === req.user.username);
+  }
+
+  if (filteredHistory.length === 0) {
     return res.json({
       totalInspections: 0,
       averageScore: 0,
@@ -451,21 +619,21 @@ app.get('/api/stats', (req, res) => {
   }
 
   const stats = {
-    totalInspections: inspectionHistory.length,
+    totalInspections: filteredHistory.length,
     averageScore: Math.round(
-      inspectionHistory.reduce((sum, i) => sum + i.assessment.overallScore, 0) /
-        inspectionHistory.length
+      filteredHistory.reduce((sum, i) => sum + i.assessment.overallScore, 0) /
+        filteredHistory.length
     ),
     qualityDistribution: {
-      GOOD: inspectionHistory.filter((i) => i.assessment.quality === 'GOOD').length,
-      MEDIUM: inspectionHistory.filter((i) => i.assessment.quality === 'MEDIUM').length,
-      POOR: inspectionHistory.filter((i) => i.assessment.quality === 'POOR').length,
+      GOOD: filteredHistory.filter((i) => i.assessment.quality === 'GOOD').length,
+      MEDIUM: filteredHistory.filter((i) => i.assessment.quality === 'MEDIUM').length,
+      POOR: filteredHistory.filter((i) => i.assessment.quality === 'POOR').length,
     },
     taskDistribution: {},
   };
 
   // Calculate task distribution
-  inspectionHistory.forEach((inspection) => {
+  filteredHistory.forEach((inspection) => {
     const taskName = inspection.taskName;
     if (!stats.taskDistribution[taskName]) {
       stats.taskDistribution[taskName] = 0;
@@ -477,16 +645,23 @@ app.get('/api/stats', (req, res) => {
 });
 
 // Delete inspection by ID
-app.delete('/api/history/:id', (req, res) => {
+app.delete('/api/history/:id', requireAuth, (req, res) => {
   const { id } = req.params;
-  const initialLength = inspectionHistory.length;
-  inspectionHistory = inspectionHistory.filter((i) => i.id !== id);
 
-  if (inspectionHistory.length < initialLength) {
-    res.json({ success: true, message: 'Inspection deleted' });
-  } else {
-    res.status(404).json({ error: 'Inspection not found' });
+  // Find the inspection
+  const inspection = inspectionHistory.find(i => i.id === id);
+
+  if (!inspection) {
+    return res.status(404).json({ error: 'Inspection not found' });
   }
+
+  // Check permissions: admin can delete any, staff can only delete their own
+  if (req.user.role !== 'admin' && inspection.userId !== req.user.username) {
+    return res.status(403).json({ error: 'Not authorized to delete this inspection' });
+  }
+
+  inspectionHistory = inspectionHistory.filter((i) => i.id !== id);
+  res.json({ success: true, message: 'Inspection deleted' });
 });
 
 // Error handling middleware

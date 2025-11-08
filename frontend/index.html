@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -155,6 +155,7 @@
             width: 100%;
             z-index: 200;
             box-shadow: 0 -2px 4px rgba(0,0,0,0.08);
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .nav-tab {
@@ -239,44 +240,6 @@
         .task-selector.inline .task-option {
             padding: 10px 12px;
             max-width: none;
-        }
-
-        /* Camera Section */
-        .camera-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4/3;
-            background: var(--dark);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 16px;
-        }
-
-        #video, #canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        #canvas {
-            display: none;
-        }
-
-        .camera-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: var(--white);
-            text-align: center;
-            padding: 20px;
-        }
-
-        .camera-placeholder-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.7;
         }
 
         /* Task Selector */
@@ -898,7 +861,7 @@
         }
 
         /* Mobile Optimizations */
-        @media (max-width: 768px) {
+    @media (max-width: 768px) {
             /* Compact header */
             .header {
                 padding: 12px 16px;
@@ -935,10 +898,9 @@
                 font-size: 12px;
             }
 
-            /* Compact navigation */
-            .nav-tabs {
-                top: 62px;
-            }
+            /* Bottom nav stays fixed; add extra bottom padding for content */
+            body { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+            .nav-tabs { padding-bottom: env(safe-area-inset-bottom); }
 
             .nav-tab {
                 padding: 12px 8px;
@@ -960,21 +922,6 @@
             .card-header {
                 font-size: 17px;
                 margin-bottom: 16px;
-            }
-
-            /* Smaller camera container */
-            .camera-container {
-                aspect-ratio: 16/9;
-                margin-bottom: 12px;
-                border-radius: 8px;
-            }
-
-            .camera-placeholder {
-                padding: 20px;
-            }
-
-            .camera-placeholder-icon {
-                font-size: 32px;
             }
 
             /* Compact buttons */
@@ -1149,7 +1096,36 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .language-switcher {
+            display: flex;
+            gap: 4px;
+            margin-left: 12px;
+        }
+
+        .lang-btn-small {
+            background: rgba(109, 177, 51, 0.1);
+            border: 1px solid rgba(109, 177, 51, 0.3);
+            color: var(--wisag-green);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn-small:hover {
+            background: rgba(109, 177, 51, 0.2);
+        }
+
+        .lang-btn-small.active {
+            background: var(--wisag-green);
+            color: white;
+        }
     </style>
+    <script src="translations.js"></script>
+    <script src="auth-helper.js"></script>
 </head>
 <body>
     <div class="container">
@@ -1168,39 +1144,45 @@
                 <div class="user-menu">
                     <div class="status-indicator" id="statusIndicator"></div>
                     <span class="user-name" id="userName">User</span>
-                    <button class="btn-logout" onclick="logout()">🚪 Logout</button>
+                    <div class="language-switcher">
+                        <button class="lang-btn-small" onclick="setLanguage('en')">EN</button>
+                        <button class="lang-btn-small" onclick="setLanguage('de')">DE</button>
+                        <button class="lang-btn-small" onclick="setLanguage('ro')">RO</button>
+                    </div>
+                    <button class="btn-logout" onclick="logout()"><span data-i18n="header.logout">🚪 Logout</span></button>
                 </div>
             </div>
         </div>
 
         <!-- Navigation Tabs -->
         <div class="nav-tabs" id="bottomNav">
-            <button class="nav-tab active" onclick="switchTab('inspect')">📸 Inspect</button>
-            <button class="nav-tab" onclick="switchTab('dashboard')">📊 Dashboard</button>
-            <button class="nav-tab" onclick="switchTab('history')">📋 History</button>
+            <button class="nav-tab active" onclick="switchTab('inspect', event)"><span data-i18n="nav.inspect">📸 Inspect</span></button>
+            <button class="nav-tab" onclick="switchTab('dashboard', event)"><span data-i18n="nav.dashboard">📊 Dashboard</span></button>
+            <button class="nav-tab" onclick="switchTab('history', event)"><span data-i18n="nav.history">📋 History</span></button>
+            <button class="nav-tab" id="usersTab" onclick="switchTab('users', event)" style="display:none;"><span data-i18n="nav.users">👥 Users</span></button>
         </div>
 
         <!-- Tab: Inspect -->
         <div id="tab-inspect" class="tab-content active">
             <!-- Upload Mode Selector -->
             <div class="card">
-                <div class="card-header">📤 Upload Mode</div>
+                <div class="card-header" data-i18n="inspect.uploadMode">📤 Upload Mode</div>
                 <select id="uploadModeSelect" onchange="switchUploadMode()" style="width: 100%; padding: 12px; font-size: 15px; border: 1px solid var(--border-color); border-radius: 8px; background: white; color: var(--text-primary); cursor: pointer;">
-                    <option value="single">📸 Single Image - Analyze one image at a time</option>
-                    <option value="batch">📦 Batch Upload - Analyze up to 10 images at once</option>
+                    <option value="single" data-i18n="inspect.singleImage">📸 Single Image - Analyze one image at a time</option>
+                    <option value="batch" data-i18n="inspect.batchUpload">📦 Batch Upload - Analyze up to 10 images at once</option>
                 </select>
             </div>
 
             <!-- Task Selector -->
             <div class="card">
                 <div class="card-header-row">
-                    <div class="card-header" style="margin-bottom:0;">Select Cleaning Task</div>
+                    <div class="card-header" style="margin-bottom:0;" data-i18n="inspect.taskSelection">Select Cleaning Task</div>
                     <div class="task-selector inline" id="taskSelector"></div>
                 </div>
                 <div class="task-dropdown-wrapper" id="manualTaskWrapper" style="display:none;">
-                    <label for="manualTaskSelect" style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Manual Tasks</label>
+                    <label for="manualTaskSelect" style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);" data-i18n="inspect.manualSelect">Manual Tasks</label>
                     <select id="manualTaskSelect" onchange="manualTaskChanged()">
-                        <option value="">-- Choose Task --</option>
+                        <option value="" data-i18n="inspect.chooseTask">-- Choose Task --</option>
                     </select>
                 </div>
             </div>
@@ -1208,36 +1190,20 @@
             <!-- Single Upload Section -->
             <div id="singleUploadSection">
                 <div class="card">
-                    <div class="card-header">Capture Cleaning Area</div>
+                    <div class="card-header" data-i18n="inspect.captureArea">Capture Cleaning Area</div>
 
-                    <div class="camera-container">
-                        <video id="video" autoplay playsinline></video>
-                        <canvas id="canvas"></canvas>
-                        <div id="cameraPlaceholder" class="camera-placeholder">
-                            <div class="camera-placeholder-icon">📷</div>
-                            <div>Tap "Take/Upload Photo" to capture or select an image</div>
-                        </div>
-                    </div>
-
-                    <!-- <div class="btn-group">
-                        <button class="btn btn-primary" id="startCameraBtn" onclick="startCamera()">
-                            📷 Live Camera
-                        </button>
-                    </div> -->
                     <div class="btn-group">
                         <button class="btn btn-primary" onclick="document.getElementById('cameraInput').click()">
-                            📷 Take Photo
+                            <span data-i18n="inspect.takePhoto">📷 Take Photo</span>
                         </button>
                         <button class="btn btn-primary" onclick="document.getElementById('galleryInput').click()">
-                            📁 Upload Photo
+                            <span data-i18n="inspect.uploadPhoto">📁 Upload Photo</span>
                         </button>
                     </div>
                     <input type="file" id="cameraInput" accept="image/*" capture onchange="handleFileUpload(event)" style="display: none;">
                     <input type="file" id="galleryInput" accept="image/*" onchange="handleFileUpload(event)" style="display: none;">
 
-                    <button class="btn btn-success" id="captureBtn" onclick="captureAndAnalyze()" disabled style="width: 100%; margin-top: 12px;">
-                        🔍 Capture & Analyze
-                    </button>
+                    <!-- Live capture removed: analysis starts after selecting a photo -->
 
                 </div>
             </div>
@@ -1245,26 +1211,26 @@
             <!-- Batch Upload Section -->
             <div id="batchUploadSection" style="display: none;">
                 <div class="card">
-                    <div class="card-header">📦 Batch Upload (Up to 10 Images)</div>
+                    <div class="card-header" data-i18n="inspect.batchUpload">📦 Batch Upload (Up to 10 Images)</div>
                     <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
                         Upload multiple images at once for bulk quality inspection. Perfect for checking an entire area quickly!
                     </p>
 
                     <button class="btn btn-primary" onclick="document.getElementById('batchFileInput').click()">
-                        📤 Select Multiple Images (Max 10)
+                        <span data-i18n="inspect.selectMultiple">📤 Select Multiple Images (Max 10)</span>
                     </button>
                     <input type="file" id="batchFileInput" accept="image/*" multiple onchange="handleBatchUpload(event)" style="display: none;">
 
                     <div id="batchPreview" style="display: none; margin-top: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                            <strong id="batchCount">0 images selected</strong>
+                            <strong id="batchCount">0 <span data-i18n="inspect.imagesSelected">images selected</span></strong>
                             <button class="btn btn-secondary" onclick="clearBatchSelection()" style="width: auto; padding: 8px 16px; font-size: 13px;">
-                                Clear All
+                                <span data-i18n="inspect.clearAll">Clear All</span>
                             </button>
                         </div>
                         <div id="batchImageList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-bottom: 20px;"></div>
                         <button class="btn btn-success" id="batchAnalyzeBtn" onclick="analyzeBatch()">
-                            🔍 Analyze All Images
+                            <span data-i18n="inspect.analyzeAll">🔍 Analyze All Images</span>
                         </button>
                     </div>
                 </div>
@@ -1278,33 +1244,33 @@
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
                     <div class="stat-value" id="totalInspections">0</div>
-                    <div class="stat-label">Total Inspections</div>
+                    <div class="stat-label" data-i18n="dashboard.totalInspections">Total Inspections</div>
                 </div>
                 <div class="stat-card success">
                     <div class="stat-value" id="averageScore">0</div>
-                    <div class="stat-label">Average Score</div>
+                    <div class="stat-label" data-i18n="dashboard.averageScore">Average Score</div>
                 </div>
                 <div class="stat-card success">
                     <div class="stat-value" id="goodCount">0</div>
-                    <div class="stat-label">Good Quality</div>
+                    <div class="stat-label" data-i18n="dashboard.good">Good Quality</div>
                 </div>
                 <div class="stat-card warning">
                     <div class="stat-value" id="mediumCount">0</div>
-                    <div class="stat-label">Medium Quality</div>
+                    <div class="stat-label" data-i18n="dashboard.medium">Medium Quality</div>
                 </div>
                 <div class="stat-card danger">
                     <div class="stat-value" id="poorCount">0</div>
-                    <div class="stat-label">Poor Quality</div>
+                    <div class="stat-label" data-i18n="dashboard.poor">Poor Quality</div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header">Quality Distribution</div>
+                <div class="card-header" data-i18n="dashboard.qualityDistribution">Quality Distribution</div>
                 <div class="chart-container" id="qualityChart"></div>
             </div>
 
             <div class="card">
-                <div class="card-header">Task Distribution</div>
+                <div class="card-header" data-i18n="dashboard.taskDistribution">Task Distribution</div>
                 <div class="chart-container" id="taskChart"></div>
             </div>
         </div>
@@ -1312,8 +1278,41 @@
         <!-- Tab: History -->
         <div id="tab-history" class="tab-content">
             <div class="card">
-                <div class="card-header">Recent Inspections</div>
+                <div class="card-header" data-i18n="history.title">Recent Inspections</div>
                 <div id="historyList"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Users (Admin Only) -->
+        <div id="tab-users" class="tab-content">
+            <div class="card">
+                <div class="card-header">👥 User Management</div>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+                    Create and manage staff cleaner accounts (Maximum 2 staff members)
+                </p>
+
+                <!-- Create User Form -->
+                <form onsubmit="createUser(event)" style="margin-bottom: 24px;">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Username</label>
+                        <input type="text" id="newUsername" required
+                               style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Full Name</label>
+                        <input type="text" id="newName" required
+                               style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Password</label>
+                        <input type="password" id="newPassword" required
+                               style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary">➕ Create Staff User</button>
+                </form>
+
+                <!-- Users List -->
+                <div id="usersList"></div>
             </div>
         </div>
     </div>
@@ -1346,7 +1345,7 @@
         }
 
         // Configuration
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = 'http://192.168.8.203:3000/api';
 
         // State
         let currentStream = null;
@@ -1374,6 +1373,9 @@
                     userNameEl.textContent = session.user.name;
                 }
             }
+
+            // Check if user is admin to show/hide users tab
+            checkAdminAccess();
 
             await loadTasks();
             await checkAPIStatus();
@@ -1438,7 +1440,8 @@
                 Object.entries(tasks).forEach(([key, task]) => {
                     const opt = document.createElement('option');
                     opt.value = key;
-                    opt.textContent = task.name;
+                    const icon = TASK_ICONS[key] || '📋';
+                    opt.textContent = `${icon} ${task.name}`;
                     if (key === selectedTask) opt.selected = true;
                     manualTaskSelect.appendChild(opt);
                 });
@@ -1532,9 +1535,11 @@
                 currentStream.getTracks().forEach(track => track.stop());
                 currentStream = null;
                 const video = document.getElementById('video');
-                video.style.display = 'none';
-                document.getElementById('cameraPlaceholder').style.display = 'flex';
-                document.getElementById('captureBtn').disabled = true;
+                if (video) video.style.display = 'none';
+                const placeholder = document.getElementById('cameraPlaceholder');
+                if (placeholder) placeholder.style.display = 'flex';
+                const captureBtn = document.getElementById('captureBtn');
+                if (captureBtn) captureBtn.disabled = true;
                 // document.getElementById('startCameraBtn').textContent = '📷 Live Camera';
                 // document.getElementById('startCameraBtn').onclick = startCamera;
             }
@@ -1675,12 +1680,9 @@
                         loadingText.textContent = `Analyzing image ${i + 1} of ${batchImages.length}...`;
                     }
 
-                    const response = await fetch(`${API_URL}/analyze`, {
+                    const response = await authFetch(`${API_URL}/analyze`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
+                        body: {
                             imageData: img.data,
                             taskType: selectedTask,
                             metadata: {
@@ -1689,7 +1691,7 @@
                                 batchTotal: batchImages.length,
                                 imageName: img.name
                             }
-                        }),
+                        }
                     });
 
                     if (!response.ok) {
@@ -1935,19 +1937,16 @@
             `;
 
             try {
-                const response = await fetch(`${API_URL}/analyze`, {
+                const response = await authFetch(`${API_URL}/analyze`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
+                    body: {
                         imageData: imageData,
                         taskType: selectedTask,
                         metadata: {
                             timestamp: new Date().toISOString(),
                             userAgent: navigator.userAgent
                         }
-                    }),
+                    }
                 });
 
                 if (!response.ok) {
@@ -2270,7 +2269,7 @@
         // Load History
         async function loadHistory() {
             try {
-                const response = await fetch(`${API_URL}/history?limit=20`);
+                const response = await authFetch(`${API_URL}/history?limit=20`);
                 const history = await response.json();
 
                 const historyList = document.getElementById('historyList');
@@ -2289,6 +2288,13 @@
                 historyList.innerHTML = history.map(item => {
                     const qualityClass = item.assessment.quality.toLowerCase();
                     const formattedDate = formatDateTime(item.timestamp);
+                    const currentUser = getCurrentUser();
+                    const isAdmin = currentUser && currentUser.role === 'admin';
+
+                    // Show creator name if admin is viewing
+                    const creatorInfo = (isAdmin && item.userName)
+                        ? `<div class="history-time">👤 By: ${item.userName}</div>`
+                        : '';
 
                     return `
                         <div class="history-item">
@@ -2298,6 +2304,7 @@
                             </div>
                             <div class="history-content">
                                 <div class="history-task">${TASK_ICONS[item.taskType] || '📋'} ${item.taskName}</div>
+                                ${creatorInfo}
                                 <div class="history-time">📅 ${formattedDate}</div>
                                 <div class="history-summary">${item.assessment.summary}</div>
                             </div>
@@ -2312,7 +2319,7 @@
         // Load Stats
         async function loadStats() {
             try {
-                const response = await fetch(`${API_URL}/stats`);
+                const response = await authFetch(`${API_URL}/stats`);
                 const stats = await response.json();
 
                 document.getElementById('totalInspections').textContent = stats.totalInspections;
@@ -2369,18 +2376,136 @@
             }
         }
 
+        // User Management Functions
+
+        // Show/hide users tab based on role
+        function checkAdminAccess() {
+            const user = getCurrentUser();
+            if (user && user.role === 'admin') {
+                document.getElementById('usersTab').style.display = 'block';
+            }
+        }
+
+        // Load users list
+        async function loadUsers() {
+            try {
+                const response = await authFetch(`${API_URL}/users`);
+                const users = await response.json();
+
+                const usersList = document.getElementById('usersList');
+                if (users.length === 0) {
+                    usersList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No users found</p>';
+                    return;
+                }
+
+                usersList.innerHTML = users.map(user => `
+                    <div style="display: flex; justify-content: space-between; align-items: center;
+                                padding: 16px; margin-bottom: 12px; background: var(--light); border-radius: 8px;">
+                        <div>
+                            <div style="font-weight: 600;">${user.name}</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                @${user.username} • ${user.role === 'admin' ? '👑 Admin' : '👤 Staff'}
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                                Created: ${new Date(user.createdAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                        ${user.username !== 'wisag' ? `
+                            <button onclick="deleteUser('${user.username}')"
+                                    class="btn btn-secondary"
+                                    style="width: auto; padding: 8px 16px; background: var(--danger-color); color: white; border: none;">
+                                🗑️ Delete
+                            </button>
+                        ` : ''}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showToast('❌ Failed to load users', 'error');
+            }
+        }
+
+        // Create new user
+        async function createUser(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('newUsername').value;
+            const name = document.getElementById('newName').value;
+            const password = document.getElementById('newPassword').value;
+
+            try {
+                const response = await authFetch(`${API_URL}/users`, {
+                    method: 'POST',
+                    body: { username, name, password, role: 'staff' }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast('✅ User created successfully!', 'success');
+                    document.getElementById('newUsername').value = '';
+                    document.getElementById('newName').value = '';
+                    document.getElementById('newPassword').value = '';
+                    await loadUsers();
+                } else {
+                    showToast(`❌ ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                showToast('❌ Failed to create user', 'error');
+            }
+        }
+
+        // Delete user
+        async function deleteUser(username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await authFetch(`${API_URL}/users/${username}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast('✅ User deleted successfully!', 'success');
+                    await loadUsers();
+                } else {
+                    showToast(`❌ ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showToast('❌ Failed to delete user', 'error');
+            }
+        }
+
         // Switch Tab
-        function switchTab(tabName) {
+        function switchTab(tabName, event) {
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-            event.currentTarget.classList.add('active');
+            // Add active class to clicked tab
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            } else {
+                // Fallback: find the button by onclick attribute
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    if (tab.onclick && tab.onclick.toString().includes(`'${tabName}'`)) {
+                        tab.classList.add('active');
+                    }
+                });
+            }
+
             document.getElementById(`tab-${tabName}`).classList.add('active');
 
             if (tabName === 'dashboard') {
                 loadStats();
             } else if (tabName === 'history') {
                 loadHistory();
+            } else if (tabName === 'users') {
+                loadUsers();
             }
         }
 
@@ -2407,6 +2532,32 @@
 
             return `${month}/${day}/${year}-${hours}:${minutes}`;
         }
+
+        // Language button management
+        function updateLanguageButtons() {
+            document.querySelectorAll('.lang-btn-small').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase() === currentLanguage) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Override setLanguage to update buttons and refresh dynamic content
+        const originalSetLanguage = setLanguage;
+        setLanguage = function(lang) {
+            originalSetLanguage(lang);
+            updateLanguageButtons();
+            // Refresh dynamic content
+            loadHistory();
+            loadStats();
+            if (document.getElementById('tab-users').classList.contains('active')) {
+                loadUsers();
+            }
+        };
+
+        // Initialize language on load
+        updateLanguageButtons();
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {

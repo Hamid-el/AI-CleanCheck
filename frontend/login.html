@@ -191,16 +191,55 @@
                 padding: 30px 20px;
             }
         }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .lang-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
     </style>
+    <script src="translations.js"></script>
 </head>
 <body>
+    <div class="language-selector">
+        <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="setLanguage('de')">DE</button>
+        <button class="lang-btn" onclick="setLanguage('ro')">RO</button>
+    </div>
+
     <div class="login-container">
         <div class="login-header">
             <div class="login-logo">
                 <img src="assets/wisag-logo.png" alt="WISAG Logo" style="width: 100%; height: auto;">
             </div>
-            <h1>AI CleanCheck</h1>
-            <p>WISAG Quality Assurance</p>
+            <h1 data-i18n="appName">AI CleanCheck</h1>
+            <p data-i18n="appSubtitle">WISAG Quality Assurance</p>
         </div>
 
         <div class="login-body">
@@ -208,25 +247,25 @@
 
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label for="username">Username</label>
+                    <label for="username" data-i18n="login.username">Username</label>
                     <input
                         type="text"
                         id="username"
                         name="username"
-                        placeholder="Enter your username"
+                        data-i18n="login.username"
                         autocomplete="username"
                         required
                     >
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password" data-i18n="login.password">Password</label>
                     <div style="position: relative;">
                         <input
                             type="password"
                             id="password"
                             name="password"
-                            placeholder="Enter your password"
+                            data-i18n="login.password"
                             autocomplete="current-password"
                             required
                             style="padding-right: 45px;"
@@ -238,18 +277,18 @@
                 </div>
 
                 <button type="submit" class="btn-login" id="loginBtn">
-                    🔐 Sign In
+                    <span data-i18n="login.signIn">🔐 Sign In</span>
                 </button>
             </form>
         </div>
 
-        <div class="login-footer">
+        <div class="login-footer" data-i18n="login.demoCredentials">
             Demo Credentials: wisag / wisag
         </div>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = 'http://192.168.8.203:3000/api';
 
         function togglePassword() {
             const passwordInput = document.getElementById('password');
@@ -283,7 +322,7 @@
 
             // Disable button during login
             loginBtn.disabled = true;
-            loginBtn.textContent = '🔄 Signing in...';
+            loginBtn.innerHTML = `<span>${t('login.signingIn')}</span>`;
 
             try {
                 const response = await fetch(`${API_URL}/login`, {
@@ -309,18 +348,36 @@
                 } else {
                     showError(data.error || 'Invalid username or password');
                     loginBtn.disabled = false;
-                    loginBtn.textContent = '🔐 Sign In';
+                    loginBtn.innerHTML = `<span data-i18n="login.signIn">${t('login.signIn')}</span>`;
                 }
             } catch (error) {
                 console.error('Login error:', error);
                 showError('Cannot connect to server. Please check your connection.');
                 loginBtn.disabled = false;
-                loginBtn.textContent = '🔐 Sign In';
+                loginBtn.innerHTML = `<span data-i18n="login.signIn">${t('login.signIn')}</span>`;
             }
         }
 
+        // Update active language button
+        function updateLanguageButtons() {
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase() === currentLanguage) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Override setLanguage to update buttons
+        const originalSetLanguage = setLanguage;
+        setLanguage = function(lang) {
+            originalSetLanguage(lang);
+            updateLanguageButtons();
+        };
+
         // Check if already logged in
         window.addEventListener('DOMContentLoaded', () => {
+            updateLanguageButtons();
             const session = localStorage.getItem('wisag_session');
             if (session) {
                 // Already logged in, redirect to main app
