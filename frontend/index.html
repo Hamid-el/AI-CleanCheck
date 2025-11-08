@@ -874,6 +874,15 @@
             .camera-container {
                 aspect-ratio: 16/9;
                 margin-bottom: 12px;
+                border-radius: 8px;
+            }
+
+            .camera-placeholder {
+                padding: 20px;
+            }
+
+            .camera-placeholder-icon {
+                font-size: 32px;
             }
 
             /* Compact buttons */
@@ -889,21 +898,22 @@
 
             /* Compact task selector */
             .task-selector {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
             }
 
             .task-option {
-                padding: 14px;
+                padding: 10px 8px;
             }
 
             .task-icon {
-                font-size: 28px;
-                margin-bottom: 6px;
+                font-size: 24px;
+                margin-bottom: 4px;
             }
 
             .task-name {
-                font-size: 12px;
+                font-size: 11px;
+                line-height: 1.2;
             }
 
             /* Compact stats grid */
@@ -986,7 +996,42 @@
             /* Compact upload mode selector */
             #uploadModeSelect {
                 padding: 10px;
-                font-size: 14px;
+                font-size: 13px;
+                border-radius: 6px;
+            }
+
+            /* Reduce vertical spacing between sections */
+            .card + .card {
+                margin-top: 12px;
+            }
+
+            /* More compact result displays */
+            .result-card {
+                padding: 16px 14px;
+            }
+
+            .result-header {
+                margin-bottom: 12px;
+                gap: 12px;
+            }
+
+            .result-summary {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+
+            .finding-item {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+
+            .finding-aspect {
+                font-size: 13px;
+                margin-bottom: 3px;
+            }
+
+            .finding-description {
+                font-size: 12px;
             }
 
             /* Reduce snake loader size */
@@ -1548,6 +1593,9 @@
 
             results.forEach((result, index) => {
                 const qualityClass = result.assessment.quality.toLowerCase();
+                const hasObservations = result.assessment.observations && result.assessment.observations.length > 0;
+                const canvasId = `batchCanvas${index}`;
+
                 html += `
                     <div class="result-card" style="margin-top: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
@@ -1566,6 +1614,37 @@
                         <div class="quality-badge quality-${qualityClass}" style="display: inline-block; margin-bottom: 16px;">
                             ${result.assessment.quality}
                         </div>
+
+                        ${hasObservations && result.imageData ? `
+                            <div style="margin: 16px 0;">
+                                <div style="font-weight: 600; margin-bottom: 8px;">📍 Visual Inspection Map</div>
+                                <div style="position: relative; background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+                                    <canvas id="${canvasId}" style="width: 100%; height: auto; display: block;"></canvas>
+                                </div>
+                                <div style="margin-top: 8px; padding: 8px; background: #f0f9ff; border-radius: 6px; font-size: 12px;">
+                                    <strong>Legend:</strong>
+                                    <span style="color: #dc2626;">🔴 High</span> |
+                                    <span style="color: #ea580c;">🟠 Medium</span> |
+                                    <span style="color: #0891b2;">🔵 Low</span>
+                                </div>
+                            </div>
+                            <div style="padding: 10px; background: #fefce8; border-radius: 8px; border-left: 3px solid #eab308; margin-bottom: 16px;">
+                                <div style="font-weight: 600; font-size: 13px; color: #854d0e; margin-bottom: 8px;">
+                                    🔍 ${result.assessment.observations.length} Observations Detected
+                                </div>
+                                <div style="display: grid; gap: 6px;">
+                                    ${result.assessment.observations.map((obs, obsIdx) => {
+                                        const severityIcons = { HIGH: '🔴', MEDIUM: '🟠', LOW: '🔵' };
+                                        return `
+                                            <div style="padding: 6px; background: white; border-radius: 4px; font-size: 12px;">
+                                                ${severityIcons[obs.severity]} <strong>${obs.item}</strong>
+                                                <span style="color: var(--text-secondary);">(${obs.type}) - X:${Math.round(obs.x)}%, Y:${Math.round(obs.y)}%</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
 
                         <div class="result-summary">
                             <strong>Summary:</strong> ${result.assessment.summary}
@@ -1596,6 +1675,16 @@
                         </details>
                     </div>
                 `;
+
+                // Queue canvas drawing for after DOM update
+                if (hasObservations && result.imageData) {
+                    setTimeout(() => {
+                        const canvas = document.getElementById(canvasId);
+                        if (canvas) {
+                            drawObservationsToBatchCanvas(canvas, result.imageData, result.assessment.observations);
+                        }
+                    }, 100);
+                }
             });
 
             html += '</div>';
@@ -1678,7 +1767,7 @@
                 }
 
                 const result = await response.json();
-                displayResult(result);
+                displayResult(result, imageData);
                 await loadHistory();
                 await loadStats();
                 showToast('✅ Analysis completed successfully!', 'success');
@@ -1695,13 +1784,32 @@
         }
 
         // Display Result
-        function displayResult(result) {
+        function displayResult(result, imageData = null) {
             const { assessment, taskName } = result;
             const qualityClass = assessment.quality.toLowerCase();
 
             const resultContainer = document.getElementById('resultContainer');
+
+            // Check if we have observations to visualize
+            const hasObservations = assessment.observations && assessment.observations.length > 0;
+
             resultContainer.innerHTML = `
                 <div class="result-card">
+                    ${hasObservations && imageData ? `
+                        <div class="card" style="margin-bottom: 24px;">
+                            <div class="card-header">📍 Visual Inspection Map</div>
+                            <div style="position: relative; background: #f8f9fa; border-radius: 12px; overflow: hidden;">
+                                <canvas id="observationCanvas" style="width: 100%; height: auto; display: block;"></canvas>
+                            </div>
+                            <div style="margin-top: 12px; padding: 12px; background: #f0f9ff; border-radius: 8px; font-size: 13px;">
+                                <strong>Legend:</strong>
+                                <span style="color: #dc2626;">🔴 High</span> |
+                                <span style="color: #ea580c;">🟠 Medium</span> |
+                                <span style="color: #0891b2;">🔵 Low</span>
+                            </div>
+                        </div>
+                    ` : ''}
+
                     <div class="result-header">
                         <div>
                             <h3 style="font-size: 20px; margin-bottom: 8px;">${taskName}</h3>
@@ -1716,6 +1824,32 @@
                     <div class="result-summary">
                         <strong>Summary:</strong> ${assessment.summary}
                     </div>
+
+                    ${hasObservations ? `
+                        <div class="card" style="margin: 20px 0; background: #fefce8; border-left: 4px solid #eab308;">
+                            <div style="font-weight: 600; margin-bottom: 12px; color: #854d0e;">🔍 ${assessment.observations.length} Observations Detected</div>
+                            <div style="display: grid; gap: 8px;">
+                                ${assessment.observations.map((obs, idx) => {
+                                    const severityColors = {
+                                        HIGH: '#dc2626',
+                                        MEDIUM: '#ea580c',
+                                        LOW: '#0891b2'
+                                    };
+                                    const severityIcons = {
+                                        HIGH: '🔴',
+                                        MEDIUM: '🟠',
+                                        LOW: '🔵'
+                                    };
+                                    return `
+                                        <div style="padding: 10px; background: white; border-radius: 6px; font-size: 13px;">
+                                            ${severityIcons[obs.severity]} <strong>${obs.item}</strong>
+                                            <span style="color: var(--text-secondary);">(${obs.type}) - Position: X:${Math.round(obs.x)}%, Y:${Math.round(obs.y)}%</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
 
                     <div class="findings-list">
                         <h4 style="font-size: 16px; margin-bottom: 12px;">Detailed Findings</h4>
@@ -1745,8 +1879,199 @@
                 </div>
             `;
 
+            // Draw observations on canvas if available
+            if (hasObservations && imageData) {
+                drawObservationsOnCanvas(imageData, assessment.observations);
+            }
+
             // Scroll to result
             resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Draw observations on canvas with coordinate axes
+        function drawObservationsOnCanvas(imageData, observations) {
+            const canvas = document.getElementById('observationCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = function() {
+                // Set canvas size to match image
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                // Draw the original image
+                ctx.drawImage(img, 0, 0);
+
+                // Draw observations with coordinate axes
+                observations.forEach((obs, idx) => {
+                    const x = (obs.x / 100) * canvas.width;
+                    const y = (obs.y / 100) * canvas.height;
+
+                    // Color based on severity
+                    const colors = {
+                        HIGH: '#dc2626',
+                        MEDIUM: '#ea580c',
+                        LOW: '#0891b2'
+                    };
+                    const color = colors[obs.severity] || '#6b7280';
+
+                    // Draw vertical axis line
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+
+                    // Draw horizontal axis line
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+
+                    // Reset line dash
+                    ctx.setLineDash([]);
+
+                    // Draw crosshair circle at intersection
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 12, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Draw label background
+                    const label = `${idx + 1}. ${obs.item}`;
+                    const labelPadding = 8;
+                    const fontSize = 14;
+                    ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
+                    const labelWidth = ctx.measureText(label).width;
+
+                    // Position label (try to keep it in bounds)
+                    let labelX = x + 20;
+                    let labelY = y - 10;
+                    if (labelX + labelWidth + labelPadding * 2 > canvas.width) {
+                        labelX = x - labelWidth - labelPadding * 2 - 20;
+                    }
+                    if (labelY - fontSize - labelPadding * 2 < 0) {
+                        labelY = y + fontSize + labelPadding * 2 + 10;
+                    }
+
+                    // Draw label background
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                    ctx.fillRect(labelX, labelY - fontSize - labelPadding, labelWidth + labelPadding * 2, fontSize + labelPadding * 2);
+
+                    // Draw label text
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(label, labelX + labelPadding, labelY - labelPadding);
+
+                    // Draw coordinates on axes
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                    ctx.font = `12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
+
+                    // X coordinate at top
+                    const xCoordText = `X:${Math.round(obs.x)}%`;
+                    const xCoordWidth = ctx.measureText(xCoordText).width;
+                    ctx.fillRect(x - xCoordWidth / 2 - 4, 5, xCoordWidth + 8, 18);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(xCoordText, x - xCoordWidth / 2, 18);
+
+                    // Y coordinate at left
+                    const yCoordText = `Y:${Math.round(obs.y)}%`;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                    ctx.fillRect(5, y - 9, ctx.measureText(yCoordText).width + 8, 18);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(yCoordText, 9, y + 4);
+                });
+            };
+
+            img.src = imageData;
+        }
+
+        // Draw observations on batch canvas
+        function drawObservationsToBatchCanvas(canvas, imageData, observations) {
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                observations.forEach((obs, idx) => {
+                    const x = (obs.x / 100) * canvas.width;
+                    const y = (obs.y / 100) * canvas.height;
+                    const colors = { HIGH: '#dc2626', MEDIUM: '#ea580c', LOW: '#0891b2' };
+                    const color = colors[obs.severity] || '#6b7280';
+
+                    // Draw axes
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Draw crosshair
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 12, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Draw label
+                    const label = `${idx + 1}. ${obs.item}`;
+                    const labelPadding = 10;
+                    const fontSize = 18;
+                    ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
+                    const labelWidth = ctx.measureText(label).width;
+
+                    let labelX = x + 20;
+                    let labelY = y - 10;
+                    if (labelX + labelWidth + labelPadding * 2 > canvas.width) {
+                        labelX = x - labelWidth - labelPadding * 2 - 20;
+                    }
+                    if (labelY - fontSize - labelPadding * 2 < 0) {
+                        labelY = y + fontSize + labelPadding * 2 + 10;
+                    }
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(labelX, labelY - fontSize - labelPadding, labelWidth + labelPadding * 2, fontSize + labelPadding * 2);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(label, labelX + labelPadding, labelY - labelPadding);
+
+                    // Draw coordinates
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.font = `bold 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`;
+                    const xCoordText = `X:${Math.round(obs.x)}%`;
+                    const xCoordWidth = ctx.measureText(xCoordText).width;
+                    ctx.fillRect(x - xCoordWidth / 2 - 6, 5, xCoordWidth + 12, 22);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(xCoordText, x - xCoordWidth / 2, 21);
+
+                    const yCoordText = `Y:${Math.round(obs.y)}%`;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(5, y - 11, ctx.measureText(yCoordText).width + 12, 22);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(yCoordText, 11, y + 6);
+                });
+            };
+
+            img.src = imageData;
         }
 
         // Load History

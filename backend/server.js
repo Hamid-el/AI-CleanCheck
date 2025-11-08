@@ -112,6 +112,15 @@ function generateAssessmentPrompt(taskType) {
 Evaluation Criteria:
 ${task.criteria.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
+| No. | Task                                | Evaluation Criteria                                            | **Green (2 Points)**                           | **Orange (1 Point)**                      | **Red (0 Points)**                                  |
+| --- | ----------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------- | --------------------------------------------------- |
+| 1   | Clean / clear the table surface     | No visible stains or crumbs, no trash left on the surface      | Table completely cleared and clean             | Some items or stains still visible        | Surface largely unchanged or only partially cleaned |
+| 2   | Empty / check the trash bin         | Bin visibly empty, new bag inserted, no waste on the floor     | Bin empty, new bag properly inserted           | Partially emptied, bag not replaced       | Bin still full or dirty                             |
+| 3   | Clean / organize the whiteboard     | Text fully removed without residues, magnets/markers organized | Whiteboard clean, no residues, fully organized | Light traces of text, partially organized | Text still visible, board unorganized               |
+| 4   | Tidy up the windowsill / shelf area | Waste removed, dirt (e.g., soil) cleared, surface evenly clean | Windowsill clean and free of dirt/waste        | Some objects or light dirt still visible  | Area messy and dirty                                |
+| 5   | Close windows                       | All windows closed                                             | All windows closed                             | Only a few windows closed                 | All windows open                                    |
+
+
 Provide your assessment in the following JSON format:
 {
   "overallScore": <number 0-100>,
@@ -125,7 +134,16 @@ Provide your assessment in the following JSON format:
     }
   ],
   "recommendations": ["<list of improvement suggestions if any>"],
-  "confidence": <number 0-100>
+  "confidence": <number 0-100>,
+  "observations": [
+    {
+      "item": "<what was observed: e.g., 'coffee cup', 'stain', 'debris', 'paper stack'>",
+      "type": "<OBJECT|STAIN|DEBRIS|ISSUE>",
+      "x": <number 0-100, horizontal position as percentage>,
+      "y": <number 0-100, vertical position as percentage>,
+      "severity": "<LOW|MEDIUM|HIGH>"
+    }
+  ]
 }
 
 Quality ratings:
@@ -133,7 +151,12 @@ Quality ratings:
 - MEDIUM (50-79): Acceptable but needs improvement
 - POOR (0-49): Does not meet standards, requires rework
 
-Be objective, specific, and provide actionable feedback.`;
+For observations:
+- Identify ALL visible objects, stains, debris, or issues in the image
+- Provide accurate coordinate positions (x: left to right, y: top to bottom)
+- Mark severity based on impact on cleanliness
+
+Be objective, specific, and provide actionable feedback with precise locations.`;
 }
 
 // API Routes
