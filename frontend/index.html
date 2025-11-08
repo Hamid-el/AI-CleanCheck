@@ -60,6 +60,7 @@
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--border-color);
+            padding-top: calc(24px + env(safe-area-inset-top)); /* respect iOS notch */
         }
 
         .header-content {
@@ -74,11 +75,13 @@
             display: flex;
             align-items: center;
             gap: 16px;
+            min-width: 0;
         }
 
         .logo-icon {
             width: 48px;
             height: 48px;
+            flex-shrink: 0;
         }
 
         .logo-icon img {
@@ -92,6 +95,8 @@
             font-weight: 600;
             color: var(--wisag-dark);
             letter-spacing: -0.5px;
+            line-height: 1.2;
+            white-space: nowrap;
         }
 
         .logo-text p {
@@ -99,6 +104,7 @@
             color: var(--text-secondary);
             font-weight: 400;
             margin-top: 2px;
+            line-height: 1.1;
         }
 
         .status-indicator {
@@ -155,7 +161,12 @@
             width: 100%;
             z-index: 200;
             box-shadow: 0 -2px 4px rgba(0,0,0,0.08);
+            /* Make the footer height account for safe-area and keep inner content 56px tall */
+            height: calc(56px + env(safe-area-inset-bottom));
             padding-bottom: env(safe-area-inset-bottom);
+            align-items: center; /* center items within the 56px content box */
+            -webkit-tap-highlight-color: transparent;
+            transform: translateZ(0); /* fix iOS hit-testing quirks on fixed elements */
         }
 
         .nav-tab {
@@ -171,6 +182,13 @@
             color: var(--text-secondary);
             transition: all 0.2s ease;
             letter-spacing: -0.1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%; /* equals 56px via parent content-box */
+            position: relative;
+            z-index: 1;
+            touch-action: manipulation; /* better mobile tap behavior */
         }
 
         .nav-tab.active {
@@ -771,6 +789,7 @@
             font-size: 20px;
             font-weight: 700;
             flex-shrink: 0;
+            position: relative;
         }
 
         .history-content {
@@ -801,6 +820,22 @@
             line-clamp: 2; /* Standard */
             -webkit-box-orient: vertical;
         }
+
+        .inline-edit-btn {
+            background: var(--dark-light);
+            color: #fff;
+            border: none;
+            padding: 4px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .inline-edit-btn:hover { background: var(--wisag-green); }
 
         /* Empty State */
         .empty-state {
@@ -845,11 +880,13 @@
             transition: all 0.3s;
             max-width: 90%;
             text-align: center;
+            pointer-events: none; /* do not block taps when hidden/off-screen */
         }
 
         .toast.show {
             opacity: 1;
             transform: translateX(-50%) translateY(0);
+            pointer-events: auto; /* allow interaction only when visible */
         }
 
         .toast.error {
@@ -865,23 +902,33 @@
             /* Compact header */
             .header {
                 padding: 12px 16px;
+                padding-top: calc(12px + env(safe-area-inset-top));
+            }
+
+            .header-content {
+                flex-wrap: wrap;
+                row-gap: 8px;
             }
 
             .logo-icon {
                 width: 36px;
                 height: 36px;
+                flex-shrink: 0;
             }
 
             .logo-text h1 {
                 font-size: 18px;
+                white-space: normal;
             }
 
             .logo-text p {
                 font-size: 11px;
+                white-space: normal;
             }
 
             .logo {
                 gap: 12px;
+                flex: 1;
             }
 
             /* Compact user menu */
@@ -903,7 +950,7 @@
             .nav-tabs { padding-bottom: env(safe-area-inset-bottom); }
 
             .nav-tab {
-                padding: 12px 8px;
+                padding: 0 8px;
                 font-size: 12px;
             }
 
@@ -1142,7 +1189,7 @@
                     </div>
                 </div>
                 <div class="user-menu">
-                    <div class="status-indicator" id="statusIndicator"></div>
+                    <!-- <div class="status-indicator" id="statusIndicator"></div> -->
                     <span class="user-name" id="userName">User</span>
                     <div class="language-switcher">
                         <button class="lang-btn-small" onclick="setLanguage('en')">EN</button>
@@ -1320,6 +1367,26 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
+    <!-- Edit Score Modal -->
+    <div id="editScoreModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <h3 style="margin: 0 0 20px 0; color: var(--text-primary);" data-i18n="history.editScore">Edit Score</h3>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;" data-i18n="history.newScore">New Score (0-100)</label>
+                <input type="number" id="newScoreInput" min="0" max="100" step="1"
+                       style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 16px;">
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button onclick="closeEditScoreModal()" class="btn btn-secondary" style="width: auto; padding: 10px 20px;">
+                    <span data-i18n="history.cancel">Cancel</span>
+                </button>
+                <button onclick="updateScore()" class="btn btn-primary" style="width: auto; padding: 10px 20px;">
+                    <span data-i18n="history.updateScore">Update Score</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Check authentication
         function checkAuth() {
@@ -1345,7 +1412,17 @@
         }
 
         // Configuration
-        const API_URL = 'http://192.168.8.203:3000/api';
+        // Resolve API URL dynamically to work on localhost and LAN/mobile
+        const API_URL = (() => {
+            try {
+                const isHttp = window.location.protocol.startsWith('http');
+                const host = window.location.hostname || 'localhost';
+                const protocol = isHttp ? window.location.protocol : 'http:';
+                return `${protocol}//${host}:3000/api`;
+            } catch (e) {
+                return 'http://localhost:3000/api';
+            }
+        })();
 
         // State
         let currentStream = null;
@@ -2296,17 +2373,29 @@
                         ? `<div class="history-time">👤 By: ${item.userName}</div>`
                         : '';
 
+                    // Inline edit buttons for admins
+                    const editScoreBtn = isAdmin
+                        ? `<button onclick="openEditScoreModal('${item.id}', ${item.assessment.overallScore})" class="inline-edit-btn" title="${t('history.editScore')}">✏️</button>`
+                        : '';
+                    const editDescBtn = isAdmin
+                        ? `<button onclick="openEditDescription('${item.id}', event)" class="inline-edit-btn" title="Edit description">📝</button>`
+                        : '';
+
                     return `
-                        <div class="history-item">
-                            <div class="history-score ${qualityClass}">
+                        <div class="history-item" style="position: relative;">
+                            <div class="history-score ${qualityClass}" style="position:relative;">
                                 ${item.assessment.overallScore}
                                 <div style="font-size: 10px; margin-top: 4px;">${item.assessment.quality}</div>
+                                ${editScoreBtn}
                             </div>
                             <div class="history-content">
                                 <div class="history-task">${TASK_ICONS[item.taskType] || '📋'} ${item.taskName}</div>
                                 ${creatorInfo}
                                 <div class="history-time">📅 ${formattedDate}</div>
-                                <div class="history-summary">${item.assessment.summary}</div>
+                                <div class="history-summary" id="summary-${item.id}" style="display:flex; align-items:flex-start; gap:6px;">
+                                    <span class="description-text" style="flex:1;">${item.assessment.summary}</span>
+                                    ${editDescBtn}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -2479,6 +2568,126 @@
                 console.error('Error deleting user:', error);
                 showToast(`❌ ${t('messages.failedToDeleteUser')}`, 'error');
             }
+        }
+
+        // Edit Score Modal Functions
+        let currentEditingInspectionId = null;
+
+        function openEditScoreModal(inspectionId, currentScore) {
+            currentEditingInspectionId = inspectionId;
+            document.getElementById('newScoreInput').value = currentScore;
+            const modal = document.getElementById('editScoreModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeEditScoreModal() {
+            const modal = document.getElementById('editScoreModal');
+            modal.style.display = 'none';
+            currentEditingInspectionId = null;
+        }
+
+        async function updateScore() {
+            const newScore = parseInt(document.getElementById('newScoreInput').value);
+
+            if (!currentEditingInspectionId) {
+                showToast('❌ No inspection selected', 'error');
+                return;
+            }
+
+            if (isNaN(newScore) || newScore < 0 || newScore > 100) {
+                showToast('❌ Score must be between 0 and 100', 'error');
+                return;
+            }
+
+            try {
+                const response = await authFetch(`${API_URL}/history/${currentEditingInspectionId}/score`, {
+                    method: 'PUT',
+                    body: { overallScore: newScore }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast(`✅ ${t('history.scoreUpdated')}`, 'success');
+                    closeEditScoreModal();
+                    await loadHistory();
+                    await loadStats();
+                } else {
+                    showToast(`❌ ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error updating score:', error);
+                showToast('❌ Failed to update score', 'error');
+            }
+        }
+
+        // Description Editing
+        let currentEditingDescriptionId = null;
+        function openEditDescription(inspectionId, evt) {
+            currentEditingDescriptionId = inspectionId;
+            const summaryEl = document.getElementById(`summary-${inspectionId}`);
+            if (!summaryEl) return;
+            const textEl = summaryEl.querySelector('.description-text');
+            const existing = (textEl ? textEl.textContent : summaryEl.textContent).trim();
+            summaryEl.innerHTML = `
+                <textarea id="descEditArea" style="width:100%; padding:8px; font-size:13px; border:1px solid var(--border-color); border-radius:6px; resize:vertical; min-height:70px;">${existing.replace(/"/g,'&quot;')}</textarea>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="btn btn-success" style="width:auto; padding:8px 16px;" onclick="saveDescription()">💾 Save</button>
+                    <button class="btn btn-secondary" style="width:auto; padding:8px 16px;" onclick="cancelDescriptionEdit()">✖ Cancel</button>
+                </div>
+            `;
+        }
+
+        async function saveDescription() {
+            if (!currentEditingDescriptionId) return;
+            const textarea = document.getElementById('descEditArea');
+            if (!textarea) return;
+            const newText = textarea.value.trim();
+            if (!newText) {
+                showToast('❌ Description cannot be empty', 'error');
+                return;
+            }
+            try {
+                const response = await authFetch(`${API_URL}/history/${currentEditingDescriptionId}/description`, {
+                    method: 'PUT',
+                    body: { summary: newText }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('✅ Description updated', 'success');
+                    const summaryEl = document.getElementById(`summary-${currentEditingDescriptionId}`);
+                    if (summaryEl) {
+                        // Re-render summary with edit button preserved
+                        summaryEl.innerHTML = `<span class="description-text" style="flex:1;">${escapeHtml(newText)}</span>` +
+                            (getCurrentUser()?.role === 'admin'
+                                ? `<button onclick="openEditDescription('${currentEditingDescriptionId}', event)" class="inline-edit-btn" title="Edit description">📝</button>`
+                                : '');
+                    }
+                    currentEditingDescriptionId = null;
+                } else {
+                    showToast(`❌ ${data.error || 'Failed to update description'}`, 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Network error updating description', 'error');
+            }
+        }
+
+        // Simple HTML escape for user-entered description
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function cancelDescriptionEdit() {
+            if (!currentEditingDescriptionId) return;
+            // Reload just the history item by re-calling loadHistory (simple approach)
+            loadHistory();
+            currentEditingDescriptionId = null;
         }
 
         // Switch Tab

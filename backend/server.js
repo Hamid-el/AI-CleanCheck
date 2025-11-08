@@ -664,6 +664,64 @@ app.delete('/api/history/:id', requireAuth, (req, res) => {
   res.json({ success: true, message: 'Inspection deleted' });
 });
 
+// Update inspection description (admin only)
+app.put('/api/history/:id/description', requireAuth, requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const { summary } = req.body;
+
+  if (typeof summary !== 'string' || !summary.trim()) {
+    return res.status(400).json({ error: 'Valid summary (description) string required' });
+  }
+
+  // Find inspection
+  const inspection = inspectionHistory.find(i => i.id === id);
+  if (!inspection) {
+    return res.status(404).json({ error: 'Inspection not found' });
+  }
+
+  // Update summary (description)
+  inspection.assessment.summary = summary.trim();
+  inspection.updatedAt = new Date().toISOString();
+
+  res.json({ success: true, message: 'Description updated', inspection });
+});
+
+// Update inspection score (admin only)
+app.put('/api/history/:id/score', requireAuth, requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const { overallScore } = req.body;
+
+  // Validate score
+  if (typeof overallScore !== 'number' || overallScore < 0 || overallScore > 100) {
+    return res.status(400).json({ error: 'Invalid score. Must be a number between 0 and 100' });
+  }
+
+  // Find the inspection
+  const inspection = inspectionHistory.find(i => i.id === id);
+
+  if (!inspection) {
+    return res.status(404).json({ error: 'Inspection not found' });
+  }
+
+  // Update the score
+  inspection.assessment.overallScore = Math.round(overallScore);
+
+  // Update quality based on new score
+  if (overallScore >= 80) {
+    inspection.assessment.quality = 'GOOD';
+  } else if (overallScore >= 50) {
+    inspection.assessment.quality = 'MEDIUM';
+  } else {
+    inspection.assessment.quality = 'POOR';
+  }
+
+  res.json({
+    success: true,
+    message: 'Score updated successfully',
+    inspection
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);

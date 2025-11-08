@@ -22,10 +22,10 @@ const translations = {
 
         // Navigation
         nav: {
-            inspect: 'Inspect',
-            dashboard: 'Dashboard',
-            history: 'History',
-            users: 'Users'
+            inspect: '📸 Inspect',
+            dashboard: '📊 Dashboard',
+            history: '📋 History',
+            users: '👥 Users'
         },
 
         // Header
@@ -38,8 +38,8 @@ const translations = {
         // Inspect Tab
         inspect: {
             uploadMode: 'Upload Mode',
-            singleImage: 'Single Image',
-            batchUpload: 'Batch Upload',
+            singleImage: '📸 Single Image - Analyze one image at a time',
+            batchUpload: '📦 Batch Upload - Analyze up to 10 images at once',
             taskSelection: 'Task Selection',
             autoDetect: 'Auto-detect',
             autoDetectDesc: 'AI will identify the area',
@@ -106,7 +106,12 @@ const translations = {
             startCapturing: 'Start by capturing and analyzing a cleaning area',
             by: 'By',
             emptyMessage: 'No inspections yet',
-            emptyHint: 'Start by capturing and analyzing a cleaning area'
+            emptyHint: 'Start by capturing and analyzing a cleaning area',
+            editScore: 'Edit Score',
+            newScore: 'New Score (0-100)',
+            updateScore: 'Update Score',
+            cancel: 'Cancel',
+            scoreUpdated: 'Score updated successfully!'
         },
 
         // Users Management
@@ -181,10 +186,10 @@ const translations = {
 
         // Navigation
         nav: {
-            inspect: 'Prüfen',
-            dashboard: 'Dashboard',
-            history: 'Verlauf',
-            users: 'Benutzer'
+            inspect: '📸 Prüfen',
+            dashboard: '📊 Dashboard',
+            history: '📋 Verlauf',
+            users: '👥 Benutzer'
         },
 
         // Header
@@ -197,8 +202,8 @@ const translations = {
         // Inspect Tab
         inspect: {
             uploadMode: 'Upload-Modus',
-            singleImage: 'Einzelnes Bild',
-            batchUpload: 'Batch-Upload',
+            singleImage: '📸 Einzelnes Bild - Ein Bild gleichzeitig analysieren',
+            batchUpload: '📦 Batch-Upload - Bis zu 10 Bilder gleichzeitig analysieren',
             taskSelection: 'Aufgabenauswahl',
             autoDetect: 'Auto-Erkennung',
             autoDetectDesc: 'KI identifiziert den Bereich',
@@ -265,7 +270,12 @@ const translations = {
             startCapturing: 'Beginnen Sie mit der Erfassung und Analyse eines Reinigungsbereichs',
             by: 'Von',
             emptyMessage: 'Noch keine Inspektionen',
-            emptyHint: 'Beginnen Sie mit der Erfassung und Analyse eines Reinigungsbereichs'
+            emptyHint: 'Beginnen Sie mit der Erfassung und Analyse eines Reinigungsbereichs',
+            editScore: 'Bewertung bearbeiten',
+            newScore: 'Neue Bewertung (0-100)',
+            updateScore: 'Bewertung aktualisieren',
+            cancel: 'Abbrechen',
+            scoreUpdated: 'Bewertung erfolgreich aktualisiert!'
         },
 
         // Users Management
@@ -340,10 +350,10 @@ const translations = {
 
         // Navigation
         nav: {
-            inspect: 'Inspectează',
-            dashboard: 'Tablou de bord',
-            history: 'Istoric',
-            users: 'Utilizatori'
+            inspect: '📸 Inspectează',
+            dashboard: '📊 Tablou de bord',
+            history: '📋 Istoric',
+            users: '👥 Utilizatori'
         },
 
         // Header
@@ -356,8 +366,8 @@ const translations = {
         // Inspect Tab
         inspect: {
             uploadMode: 'Mod încărcare',
-            singleImage: 'Imagine unică',
-            batchUpload: 'Încărcare lot',
+            singleImage: '📸 Imagine unică - Analizează o singură imagine',
+            batchUpload: '📦 Încărcare lot - Analizează până la 10 imagini deodată',
             taskSelection: 'Selectare sarcină',
             autoDetect: 'Detectare automată',
             autoDetectDesc: 'AI va identifica zona',
@@ -424,7 +434,12 @@ const translations = {
             startCapturing: 'Începeți prin capturarea și analiza unei zone de curățenie',
             by: 'De',
             emptyMessage: 'Nicio inspecție încă',
-            emptyHint: 'Începeți prin capturarea și analiza unei zone de curățenie'
+            emptyHint: 'Începeți prin capturarea și analiza unei zone de curățenie',
+            editScore: 'Editează scor',
+            newScore: 'Scor nou (0-100)',
+            updateScore: 'Actualizează scor',
+            cancel: 'Anulează',
+            scoreUpdated: 'Scor actualizat cu succes!'
         },
 
         // Users Management
