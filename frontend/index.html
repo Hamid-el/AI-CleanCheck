@@ -114,6 +114,36 @@
             50% { opacity: 0.5; }
         }
 
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            font-size: 13px;
+            background: #f8f9fa;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
         /* Navigation Tabs */
         .nav-tabs {
             display: flex;
@@ -843,6 +873,20 @@
                 gap: 12px;
             }
 
+            /* Compact user menu */
+            .user-menu {
+                gap: 8px;
+            }
+
+            .user-name {
+                display: none;
+            }
+
+            .btn-logout {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
             /* Compact navigation */
             .nav-tabs {
                 top: 62px;
@@ -1073,7 +1117,11 @@
                         <p>WISAG Quality Assurance</p>
                     </div>
                 </div>
-                <div class="status-indicator" id="statusIndicator"></div>
+                <div class="user-menu">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <span class="user-name" id="userName">User</span>
+                    <button class="btn-logout" onclick="logout()">🚪 Logout</button>
+                </div>
             </div>
         </div>
 
@@ -1212,6 +1260,29 @@
     <div id="toast" class="toast"></div>
 
     <script>
+        // Check authentication
+        function checkAuth() {
+            const session = localStorage.getItem('wisag_session');
+            if (!session) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('wisag_session');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Check auth on page load
+        if (!checkAuth()) {
+            // Will redirect to login
+        }
+
         // Configuration
         const API_URL = 'http://192.168.8.203:3000/api';
 
@@ -1233,6 +1304,15 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
+            // Display username
+            const session = JSON.parse(localStorage.getItem('wisag_session'));
+            if (session && session.user) {
+                const userNameEl = document.getElementById('userName');
+                if (userNameEl) {
+                    userNameEl.textContent = session.user.name;
+                }
+            }
+
             await loadTasks();
             await checkAPIStatus();
             await loadHistory();

@@ -159,11 +159,48 @@ For observations:
 Be objective, specific, and provide actionable feedback with precise locations.`;
 }
 
+// Simple user database (hardcoded for demo)
+const USERS = {
+  wisag: {
+    username: 'wisag',
+    password: 'wisag',
+    name: 'WISAG User'
+  }
+};
+
 // API Routes
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'AI CleanCheck API is running' });
+});
+
+// Login endpoint
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password required' });
+  }
+
+  const user = USERS[username];
+
+  if (user && user.password === password) {
+    // Create session token
+    const sessionToken = uuidv4();
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        username: user.username,
+        name: user.name
+      },
+      token: sessionToken
+    });
+  } else {
+    res.status(401).json({ error: 'Invalid username or password' });
+  }
 });
 
 // Get all cleaning task types
